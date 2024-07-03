@@ -11,7 +11,7 @@ sides_cat_path = "/data/SIDES/PYSIDES_UCHUU_OUTPUTS/vpeak_complete/"
 
 pixel_size = 30 #arcsec
 
-tile_sizes = [(0.45, 0.45),(0.2, 1), (0.2, 1.25), (0.2, 1.5)]
+tile_sizes = [(0.45, 0.45),(0.2, 1), (0.2, 1.25), (0.2, 1.5), (1,1), (1.5, 1.5)]
 #Instrument's parameters
 
 freq_min = 715e9 #Hz
