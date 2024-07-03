@@ -1,0 +1,32 @@
+8
+
+dir
+1
+https://inf-cvs.ias.u-psud.fr/modir/idl_version/sed/lagache2004/FILTRE
+https://inf-cvs.ias.u-psud.fr/modir
+
+
+
+2010-01-11T23:13:52.551060Z
+1
+mbetherm
+
+
+svn:special svn:externals svn:needs-lock
+
+iso_filters
+dir
+
+filters.tar
+file
+
+
+
+
+2009-11-10T16:35:00.000000Z
+f185cd898703e67977c2c950c58b8a17
+2010-01-11T23:13:52.551060Z
+1
+mbetherm
+has-props
+

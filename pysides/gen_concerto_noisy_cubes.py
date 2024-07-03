@@ -1,0 +1,140 @@
+from astropy.io import fits
+import numpy as np
+import scipy.constants as cst
+from astropy.stats import gaussian_fwhm_to_sigma
+import astropy.convolution as conv
+import astropy.units as u
+from os import sys
+from copy import deepcopy
+import datetime
+from astropy.utils.console import ProgressBar
+
+from IPython import embed
+
+#def compute_sensitivity(freq, delta_nu_GHz, t_tot_h, area_deg2):
+#    #based on the CONCERTO collaboration et al. (2020) paper
+#    nu_grid = np.array([131, 156, 211, 238, 272, 302]) #GHz
+#    MS_grid = np.array([42.8, 19.8, 3.4, 1.7, 0.8, 0.5]) * 1.e-3 #deg^2 / (MJy/sr)^2 /home/
+#    beam_sr_grid = np.array([7.30,5.15,2.81,2.21,1.70,1.37])*1.e-8 #sr
+#    MS_interp = np.exp(np.interp(np.log(freq), np.log(nu_grid), np.log(MS_grid)))
+#    #rescale to the delta_nu
+#    MS_rescaled =  MS_interp * (delta_nu_GHz/1.5)**2
+#    MJy_per_sr = np.sqrt( area_deg2 / MS_rescaled / t_tot_h )
+#    beam_sr = beam_sr_grid[0] * ( nu_grid[0] / freq)**2 #equivalent to the table, checked!
+#    Jy_rms = 1.e6 * MJy_per_sr * beam_sr #noise scales like sqrt of the surface 
+#    return Jy_rms
+
+def gen_concerto_noisy_cubes(cube_path, sensitivity_file = '/home/mbethermin/sides/PYSIDES/pysides/CONCERTO_SENSITIVITY/SIDES_sensitivity_1Ghz_res.txt', telescope_diameter = 12, gen_smoothed = False, save_noise = False, save_fits = False, run_id = ''):
+
+    #gen_smoothed is used to generate also a beam-smoothed map (ideal for source extraction)
+    if gen_smoothed:
+        smoothed_list = [False, True]
+    else:
+        smoothed_list = [False]
+
+    hdu = fits.open(cube_path)
+    hdr = hdu[0].header
+    pixsize = hdr['CDELT1'] * 3600. #arcsec
+    Nz, Ny, Nx = np.shape(hdu[0].data)
+
+    freq = 1.e-9 * (hdr['CRVAL3'] + hdr['CDELT3'] * (np.arange(0, Nz) - (hdr['CRPIX3']-1))) #GHz
+
+    #load the sensitivity file
+    nu_file, sens_mJy_per_beam, omega_beam_sensfile = np.loadtxt(sensitivity_file, unpack = True)
+    
+    sigma_Jy_per_beam = np.interp(freq, nu_file, 1.e-3 * sens_mJy_per_beam) #compute_sensitivity(freq, delta_nu_GHz, t_tot_h, area_deg2)
+
+    results = {}
+
+    noisy_cube = deepcopy(hdu[0].data)
+    noise_cube = np.zeros_like(noisy_cube)
+    if gen_smoothed:
+        noisy_cube_conv = np.zeros_like(noisy_cube)
+        if save_noise:
+            noise_cube_conv = np.zeros_like(noisy_cube)
+
+    print('Add noise slice by slice...')
+    for k in ProgressBar(range(0, len(freq))):
+        
+        fwhm = 1.22 * cst.c / (freq[k] * 1e9 * telescope_diameter) * u.rad
+        sigma = (fwhm * gaussian_fwhm_to_sigma).to(u.arcsec)
+        sigma_pix = sigma.value / pixsize  #pixel
+        kernel = conv.Gaussian2DKernel(x_stddev=sigma_pix, x_size=Nx)
+        kernel.normalize(mode="peak")
+
+        sigma_1pix_Jy_beam = sigma_Jy_per_beam[k] * np.sqrt(np.sum(kernel.array**2)) #Noise to put per pixel, after beam smoothing the noise will be exactly the sigma in Jy/beam
+
+        noise_slice = sigma_1pix_Jy_beam * np.random.normal(size = (Ny,Nx))
+
+        #Just a quick test to check the noise is correct after beam smoothing
+        #test = conv.convolve_fft(noise_slice, kernel, normalize_kernel=False, boundary="wrap") / np.sum(kernel.array**2)
+        #print('test', np.std(test))
+
+        #convert to another unit if necessary
+        fconv = -1
+        if hdr['BUNIT'] == 'Jy/beam':
+            fconv = 1
+        if hdr['BUNIT'] == 'MJy/sr':
+            fconv = 1.e-6 / ( np.sum(kernel.array) * (pixsize * (np.pi/180/3600))**2 )
+        if fconv == -1:
+            sys.exit('The units in the header do not match the cases already implemented. The code will not proceed!')
+    
+        noisy_cube[k,:,:] += fconv * noise_slice
+        noise_cube[k,:,:] = fconv * noise_slice
+
+        if gen_smoothed:
+            #print('Smooth!, ', hdr['BUNIT'])
+            if hdr['BUNIT'] == 'Jy/beam':
+                noisy_cube_conv[k,:,:] = conv.convolve_fft(noisy_cube[k,:,:], kernel, normalize_kernel=False, boundary="wrap") / np.sum(kernel.array**2)
+                if save_noise:
+                    noise_cube_conv[k,:,:] = conv.convolve_fft(noise_cube[k,:,:], kernel, normalize_kernel=False, boundary="wrap") / np.sum(kernel.array**2)
+            if hdr['BUNIT'] == 'MJy/sr':
+                noisy_cube_conv[k,:,:] = conv.convolve_fft(noisy_cube[k,:,:], kernel, normalize_kernel=False, boundary="wrap") / np.sum(kernel.array)
+                if save_noise:
+                    noise_cube_conv[k,:,:] = conv.convolve_fft(noise_cube[k,:,:], kernel, normalize_kernel=False, boundary="wrap") / np.sum(kernel.array)
+            
+    results['noisy_cube'] = noisy_cube
+    results['noise_cube'] = noise_cube
+    if gen_smoothed:
+        results['noisy_cube_conv'] = noisy_cube_conv
+        if save_noise:
+            results['noise_cube_conv'] = noise_cube_conv        
+        
+    if save_fits:
+        for smoothed in smoothed_list:
+            if smoothed:
+                fnoisy = fits.PrimaryHDU(noisy_cube_conv, header=hdr)
+            else:
+                fnoisy = fits.PrimaryHDU(noisy_cube, header=hdr)
+            hdu = fits.HDUList([fnoisy])
+            hdr["DATE"] = (str(datetime.datetime.now()), "date of the creation of the noisy map")
+            hdr["COMMENT"] = "Map with noise. Generate according to predicted CONCERTO noise levels (concerto et al. 2020)."
+            if smoothed:
+                savename = cube_path.replace(".fits", "_conv_noisy"+run_id+".fits")
+            else:
+                savename = cube_path.replace(".fits", "_noisy"+run_id+".fits")
+            hdu.writeto(savename, overwrite = True)
+            hdu.close()
+        
+            if save_noise:
+                if smoothed:
+                    fnoise = fits.PrimaryHDU(noise_cube_conv, header=hdr)
+                else:
+                    fnoise = fits.PrimaryHDU(noise_cube, header=hdr)
+                hdu = fits.HDUList([fnoise])
+                hdr["DATE"] = (str(datetime.datetime.now()), "date of the creation of the noisy map")
+                hdr["COMMENT"] = "Map with noise only. Generate according to predicted CONCERTO noise levels (concerto et al. 2020)\
+."
+                if smoothed:
+                    savename = cube_path.replace(".fits", "_conv_only_noise"+run_id+".fits")
+                else:
+                    savename = cube_path.replace(".fits", "_only_noise"+run_id+".fits")
+                
+                hdu.writeto(savename, overwrite = True)
+                hdu.close()
+
+    return results
+
+    
+    
+    
