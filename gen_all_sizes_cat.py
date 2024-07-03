@@ -50,7 +50,7 @@ if __name__ == "__main__":
     #will generate the 117deg2 SIDES-Uchuu maps around z+-dz/2 and saves them in outputs_uchuu
 
     params = load_params('PAR_FILES/SIDES_from_original_with_fir_lines.par')
-    TIM_params = load_params('PAR/Uchuu_cubes_for_TIM.par')
+    TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
 
     simu, cat, dirpath, fs = load_cat()
 
