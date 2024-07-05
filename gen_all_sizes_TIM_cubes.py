@@ -6,7 +6,6 @@ from pysides.load_params import *
 import argparse
 import time
 import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LogNorm
 import matplotlib.patches as patches
@@ -249,6 +248,7 @@ if __name__ == "__main__":
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
 
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
+        (if tile_sizeDEC != 1.5):continue
 
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
