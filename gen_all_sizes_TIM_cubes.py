@@ -11,24 +11,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LogNorm
 import matplotlib.patches as patches
-from progress.bar import Bar
 
-import os
 import re
 import glob
-import sys
-
-def list_files(pattern):
-    files = glob.glob(pattern)
-    return files
 
 freq_CII = 1900.53690000 * u.GHz
-freq_CI10 = 492.16 *u.GHz
-freq_CI21 = 809.34 * u.GHz
-rest_freq_list = [115.27120180  *u.GHz* J_up for J_up in range(1, 9)]
-rest_freq_list.append(freq_CI10); rest_freq_list.append(freq_CI21); rest_freq_list.append(freq_CII); 
-line_list = ["CO{}{}".format(J_up, J_up - 1) for J_up in range(1, 9)]
-line_list.append('CI10'); line_list.append('CI21'); line_list.append('CII_de_Looze')
 
 def sorted_files_by_n(directory, tile_sizes):
     # List all files in the directory
@@ -246,7 +233,6 @@ if __name__ == "__main__":
     cat = cat.to_pandas()
     simu='pySIDES_from_bolshoi'; fs=2
     '''
-    bar = Bar('make the cubes', max=len(TIM_params['tile_sizes']))
 
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
 
