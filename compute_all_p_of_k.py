@@ -445,4 +445,4 @@ if __name__ == "__main__":
 
             dict_fieldsize[f'{l}'] = dictl
 
-        pickle.dump(dict_fieldsize, open(TIM_params['output_path']+f'pySIDES_from_uchuu_{tile_sizeRA}_x_{tile_sizeDEC}.p', 'wb'))
+        pickle.dump(dict_fieldsize, open('dict_dir/'+f'pySIDES_from_uchuu_{tile_sizeRA}deg_x_{tile_sizeDEC}deg.p', 'wb'))
