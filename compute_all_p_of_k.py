@@ -31,7 +31,7 @@ line_list.append('CI21'); line_list.append('CII_de_Looze')
 def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
 
     path = pars['output_path']
-    dict_pks_name = f'dict_dir/{cat_name}_cube_3D_z{z_center}_MJy_{line}_pk3d.p'
+    dict_pks_name = f'dict_dir/{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}_pk3d.p'
     dico_exists = os.path.isfile(dict_pks_name)
     key_exists = False
     if(dico_exists): 
@@ -39,6 +39,8 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
         key_exists = ('nb_count_sphere' in dico_loaded.keys())
     #--- 
     if(not key_exists or recompute):
+
+        embed()
 
         cube = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}.fits')
         gal  = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_galaxies.fits')
@@ -161,7 +163,7 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
         plt.rcParams.update({'ytick.right':True})
         plt.rcParams.update({'legend.frameon':False})
 
-        fig.savefig(f'figures/{cat_name}_cube_3D_z{z_center}_MJy_{line}_3dpk_tab.png', transparent=True)
+        fig.savefig(f'figures/{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}_3dpk_tab.png', transparent=True)
 
         plt.close()
 
