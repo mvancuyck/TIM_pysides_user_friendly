@@ -28,13 +28,10 @@ rest_freq_list.append(freq_CI21); rest_freq_list.append(freq_CII);
 line_list = ["CO{}{}".format(J_up, J_up - 1) for J_up in range(7, 9)]
 line_list.append('CI21'); line_list.append('CII_de_Looze')
 
-def p_of_k_for_comoving_cube(cube_file_name, pars, recompute=False):
+def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
 
-    if(not '3D' in cube_file_name): print('warning !')
-
-    #----
     path = pars['output_path']
-    dict_pks_name = f'dict_dir/{cube_file_name[:-5]}_pk3d.p'
+    dict_pks_name = f'dict_dir/{cat_name}_cube_3D_z{z_center}_MJy_{line}_pk3d.p'
     dico_exists = os.path.isfile(dict_pks_name)
     key_exists = False
     if(dico_exists): 
@@ -43,11 +40,15 @@ def p_of_k_for_comoving_cube(cube_file_name, pars, recompute=False):
     #--- 
     if(not key_exists or recompute):
 
-        cube = fits.getdata(pars['output_path']+'/'+cube_file_name)
-        hdr = fits.getheader(pars['output_path']+'/'+cube_file_name)
+        cube = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_MJy_{line}.fits')
+        gal  = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_galaxies.fits')
+        gal /= gal.mean()
+        gal -= 1
+        hdr = fits.getheader(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_MJy_{line}.fits')
 
         normpk = hdr['CDELT1'] * hdr['CDELT2'] *hdr['CDELT3'] / (hdr['NAXIS1'] * hdr['NAXIS2'] * hdr['NAXIS3'])
         pow_sqr = np.absolute(np.fft.fftn(cube)**2 * normpk )
+        pow_cross = np.real(np.fft.fftn(cube)* np.conj(np.fft.fftn(gal))* normpk )
 
         w_freq = 2*np.pi*np.fft.fftfreq(hdr['NAXIS1'], d=hdr['CDELT1'])
         v_freq = 2*np.pi*np.fft.fftfreq(hdr['NAXIS2'], d=hdr['CDELT2'])
@@ -78,9 +79,11 @@ def p_of_k_for_comoving_cube(cube_file_name, pars, recompute=False):
 
         k_out_sphere, e = np.histogram(k_sphere_freq, bins = k_bintab_sphere, weights = k_sphere_freq)
         pk_out_sphere, e = np.histogram(k_sphere_freq, bins = k_bintab_sphere, weights = pow_sqr)
+        xpk_out_sphere, e = np.histogram(k_sphere_freq, bins = k_bintab_sphere, weights = pow_cross)
         histo_sphere, e = np.histogram(k_sphere_freq, bins = k_bintab_sphere)
         k_out_sphere /= histo_sphere
         pk_out_sphere /= histo_sphere
+        xpk_out_sphere /= histo_sphere
 
         histo, edges = np.histogramdd((k_z_freq_3d.ravel(), k_transv_freq_3d.ravel()), 
                                         bins=(k_bintab_z.value, k_bintab_transv.value))
@@ -97,17 +100,21 @@ def p_of_k_for_comoving_cube(cube_file_name, pars, recompute=False):
         pk_out = np.histogramdd((k_z_freq_3d.ravel(), k_transv_freq_3d.ravel()), 
                                 bins=(k_bintab_z.value, k_bintab_transv.value), 
                                 weights=pow_sqr.ravel())[0]
+        xpk_out = np.histogramdd((k_z_freq_3d.ravel(), k_transv_freq_3d.ravel()), 
+                        bins=(k_bintab_z.value, k_bintab_transv.value), 
+                        weights=pow_cross.ravel())[0]
 
         # Normalize by the histogram counts
         k_out_z /= histo
         k_out_transv /= histo
         pk_out /= histo
+        xpk_out /= histo
 
         # Set up the figure and axis
         fig, axs = plt.subplots(2,2,figsize=(8,4), sharex=True, dpi=200)
         axsphere, axcyl = axs[0,0], axs[0,1]
         axspherelow = axs[1,0]
-        axs[1, 1].axis('off')
+        axspherecross = axs[1, 1]
         # Use pcolormesh to create the 2D histogram plot with logarithmic color scaling
         # We need to provide the bin edges for the plot
         k_z_edges, k_transv_edges = edges
@@ -132,6 +139,10 @@ def p_of_k_for_comoving_cube(cube_file_name, pars, recompute=False):
         axsphere.loglog(k_out_sphere, pk_out_sphere, '-ok', markersize=1.5)
         axsphere.set_title('Spherical power spectrum')
         axsphere.set_ylabel('$\\rm P(k)$ $\\rm[Jy^2/sr^2.Mpc^3]$')
+        axspherecross.loglog(k_out_sphere, xpk_out_sphere, '-ok', markersize=1.5)
+        axspherecross.set_ylabel('$\\rm P_X(k)$ $\\rm[Jy/sr.Mpc^3]$')
+        axspherecross.set_xlabel('$\\rm k$ [$\\rm Mpc^{-1}$]')
+
         axspherelow.set_xlabel('$\\rm k$ [$\\rm Mpc^{-1}$]')
         axspherelow.set_ylabel('Nb count of modes')
         axspherelow.stairs(histo_sphere,k_bintab_sphere.value, color='r', label='spherical modes')
@@ -150,7 +161,7 @@ def p_of_k_for_comoving_cube(cube_file_name, pars, recompute=False):
         plt.rcParams.update({'ytick.right':True})
         plt.rcParams.update({'legend.frameon':False})
 
-        fig.savefig(f'figures/{cube_file_name}_3dpk_tab.png', transparent=True)
+        fig.savefig(f'figures/{cat_name}_cube_3D_z{z_center}_MJy_{line}_3dpk_tab.png', transparent=True)
 
         plt.close()
 
@@ -159,6 +170,8 @@ def p_of_k_for_comoving_cube(cube_file_name, pars, recompute=False):
                 'k_out_z #Mpc-1':k_out_z, 
                 'pk_out_sphere #Jy2sr-2Mpc3':pk_out_sphere, 
                 'pk_out #Jy2sr-2Mpc3':pk_out,
+                'cross pk_out_sphere #Jysr-1Mpc3':xpk_out_sphere,
+                'cross pk_out #Jysr-1Mpc3':xpk_out,
                 'nb_count_sphere':histo_sphere,
                 'nb_count_transv':histo_transv,
                 'nb_count_z':histo_z}
@@ -427,7 +440,7 @@ if __name__ == "__main__":
 
             for z_center, dz in zip(TIM_params['z_centers'], TIM_params['dz']): 
 
-                dictl[f'pk_3D_z{z_center}_CII_de_Looze'] = p_of_k_for_comoving_cube(f'{file[:-5]}_cube_3D_z{z_center}_Jy_sr_CII_de_Looze.fits', TIM_params)
+                dictl[f'pk_3D_z{z_center}_CII_de_Looze'] = p_of_k_for_comoving_cube(file[:-5],'CII_de_Looze',z_center, TIM_params)
 
             dict_fieldsize[f'{l}'] = dictl
         pickle.dump(dict_fieldsize, open(TIM_params['output_path']+f'pySIDES_from_uchuu_{tile_sizeRA}_x_{tile_sizeDEC}.p', 'wb'))
