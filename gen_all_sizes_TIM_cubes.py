@@ -200,7 +200,7 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
         print('save '+output_name)
         hdu.close()
 
-    output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_Jy_sr_galaxies.fits'
+    output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_galaxies.fits'
     if(not os.path.isfile(output_name)):
         cat = cat.loc[cat['Mstar']>pars['Mstar_lim']]
         cube_g, edges = np.histogramdd(sample = (np.asarray(cat['redshift']), cat['ra'], cat['dec']), 
