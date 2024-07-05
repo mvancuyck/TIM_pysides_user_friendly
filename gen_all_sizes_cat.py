@@ -3,7 +3,6 @@ import os
 import argparse
 import time
 import matplotlib
-from specutils.manipulation import FluxConservingResampler
 import numpy as np
 import vaex as vx
 from pysides.load_params import *
