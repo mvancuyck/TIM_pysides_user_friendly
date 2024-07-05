@@ -246,5 +246,5 @@ if __name__ == "__main__":
     
             for z_center, dz in zip(TIM_params['z_centers'], TIM_params['dz']): 
 
-                gen_comoving_cube(cat, TIM_params["output_path"]+file[:-5], TIM_params, 'CII_de_Looze', freq_CII,
+                gen_comoving_cube(cat, file[:-5], TIM_params, 'CII_de_Looze', freq_CII,
                                   z_center=z_center, Delta_z=dz)
