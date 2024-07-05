@@ -40,6 +40,8 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
     #--- 
     if(not key_exists or recompute):
 
+        embed()
+
         cube = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_MJy_{line}.fits')
         gal  = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_galaxies.fits')
         gal /= gal.mean()
@@ -443,4 +445,5 @@ if __name__ == "__main__":
                 dictl[f'pk_3D_z{z_center}_CII_de_Looze'] = p_of_k_for_comoving_cube(file[:-5],'CII_de_Looze',z_center, TIM_params)
 
             dict_fieldsize[f'{l}'] = dictl
+
         pickle.dump(dict_fieldsize, open(TIM_params['output_path']+f'pySIDES_from_uchuu_{tile_sizeRA}_x_{tile_sizeDEC}.p', 'wb'))
