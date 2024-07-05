@@ -40,8 +40,6 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
     #--- 
     if(not key_exists or recompute):
 
-        embed()
-
         cube = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}.fits')
         gal  = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_galaxies.fits')
         gal /= gal.mean()
