@@ -36,7 +36,7 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
     key_exists = False
     if(dico_exists): 
         dico_loaded = pickle.load( open(dict_pks_name, 'rb'))
-        key_exists = ('nb_count_sphere' in dico_loaded.keys())
+        key_exists = ('edges' in dico_loaded.keys())
     #--- 
     if(not key_exists or recompute):
 
@@ -168,6 +168,7 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
         dict = {'k_out_sphere #Mpc-1':k_out_sphere, 
                 'k_out_transv #Mpc-1':k_out_transv, 
                 'k_out_z #Mpc-1':k_out_z, 
+                'k_bins #Mpc-1':edges,
                 'pk_out_sphere #Jy2sr-2Mpc3':pk_out_sphere, 
                 'pk_out #Jy2sr-2Mpc3':pk_out,
                 'cross pk_out_sphere #Jysr-1Mpc3':xpk_out_sphere,
