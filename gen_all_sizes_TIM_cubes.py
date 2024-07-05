@@ -241,7 +241,7 @@ if __name__ == "__main__":
         
         for l, file in enumerate(files):
 
-            cat = Table.read(file)
+            cat = Table.read(TIM_params["output_path"]+file)
             cat = cat.to_pandas()
     
             for z_center, dz in zip(TIM_params['z_centers'], TIM_params['dz']): 
