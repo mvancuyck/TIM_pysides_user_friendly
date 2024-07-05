@@ -40,13 +40,11 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
     #--- 
     if(not key_exists or recompute):
 
-        embed()
-
         cube = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}.fits')
         gal  = fits.getdata(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_galaxies.fits')
         gal /= gal.mean()
         gal -= 1
-        hdr = fits.getheader(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_MJy_{line}.fits')
+        hdr = fits.getheader(pars['output_path']+'/'+f'{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}.fits')
 
         normpk = hdr['CDELT1'] * hdr['CDELT2'] *hdr['CDELT3'] / (hdr['NAXIS1'] * hdr['NAXIS2'] * hdr['NAXIS3'])
         pow_sqr = np.absolute(np.fft.fftn(cube)**2 * normpk )
