@@ -10,7 +10,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LogNorm
+import matplotlib.patches as patches
+from progress.bar import Bar
 
+import os
+import re
 import glob
 import sys
 
@@ -26,107 +30,32 @@ rest_freq_list.append(freq_CI10); rest_freq_list.append(freq_CI21); rest_freq_li
 line_list = ["CO{}{}".format(J_up, J_up - 1) for J_up in range(1, 9)]
 line_list.append('CI10'); line_list.append('CI21'); line_list.append('CII_de_Looze')
 
-def p_of_k_for_comoving_cube(cube_file_name, TIM_params):
-
-    if(not '3D' in cube_file_name): print('warning !')
-
-    cube = fits.getdata(cube_file_name)
-    hdr = fits.getheader(cube_file_name)
-
-    normpk = hdr['CDELT1'] * hdr['CDELT2'] *hdr['CDELT3'] / (hdr['NAXIS1'] * hdr['NAXIS2'] * hdr['NAXIS3'])
-    pow_sqr = np.absolute(np.fft.fftn(cube)**2 * normpk )
-
-    w_freq = 2*np.pi*np.fft.fftfreq(hdr['NAXIS1'], d=hdr['CDELT1'])
-    v_freq = 2*np.pi*np.fft.fftfreq(hdr['NAXIS2'], d=hdr['CDELT2'])
-    u_freq = 2*np.pi*np.fft.fftfreq(hdr['NAXIS3'], d=hdr['CDELT3'])
-
-    k_sphere_freq = np.sqrt(u_freq[:,np.newaxis,np.newaxis]**2 + v_freq[np.newaxis,:,np.newaxis]**2 + w_freq[np.newaxis,np.newaxis,:]**2)/ u.Mpc
-    k_transv_freq = np.sqrt( v_freq[:,np.newaxis,np.newaxis]**2 + w_freq[np.newaxis,:,np.newaxis]**2) / u.Mpc
-    k_transv_freq_3d = np.zeros(k_sphere_freq.shape)
-    k_transv_freq_3d[:,:,:] = k_transv_freq[:,:,0][np.newaxis,:,:]   
-    k_z_freq =      np.sqrt( u_freq**2 ) / u.Mpc    
-    k_z_freq_3d = np.zeros(k_sphere_freq.shape)
-    k_z_freq_3d[:,:,:] = k_z_freq[:,np.newaxis, np.newaxis]  
-    k_cylindrical = np.zeros((hdr['NAXIS3'], hdr['NAXIS2'], hdr['NAXIS1'],2))
-    k_cylindrical[:,:,:,0] = k_z_freq_3d
-    k_cylindrical[:,:,:,1] = k_transv_freq_3d
-
-    delta_k_over_k = TIM_params['dkk']
-
-    #k_nyquist = 1 / 2 / res.to(u.rad)  #rad**-1
-    k_bintab_sphere, k_binwidth_sphere = make_bintab((k_sphere_freq.min(),k_sphere_freq.max()), 0.1/ u.Mpc, delta_k_over_k) 
-    k_bintab_transv, k_binwidth_transv = make_bintab((k_transv_freq.min(),k_transv_freq.max()), 0.1/ u.Mpc, delta_k_over_k) 
-    k_bintab_z, k_binwidth_z           = make_bintab((k_z_freq.min(),k_z_freq.max()), 0.1/ u.Mpc, delta_k_over_k) 
-
-    k_out_sphere, edges = np.histogram(k_sphere_freq, bins = k_bintab_sphere, weights = k_sphere_freq)
-    pk_out_sphere, edges = np.histogram(k_sphere_freq, bins = k_bintab_sphere, weights = pow_sqr)
-    histo, edegs = np.histogram(k_sphere_freq, bins = k_bintab_sphere)
-    k_out_sphere /= histo
-    pk_out_sphere /= histo
-
-    '''
-    k_out_transv, edges = np.histogramdd(k_transv_freq_3d, bins = k_bintab_transv, weights = k_transv_freq_3d)
-    pk_out_transv, edges = np.histogram(k_transv_freq_3d, bins = k_bintab_transv, weights = pow_sqr)
-    histo, edegs = np.histogram(k_transv_freq_3d, bins = k_bintab_transv)
-    k_out_transv /= histo
-    pk_out_transv /= histo
-
-    k_out_z, edges = np.histogram(k_z_freq, bins = k_bintab_z, weights = k_z_freq)
-    pk_out_z, edges = np.histogram(k_z_freq, bins = k_bintab_z, weights = pow_sqr)
-    histo, edegs = np.histogram(k_z_freq, bins = k_bintab_z)
-    k_out_z /= histo
-    pk_out_z /= histo
-    '''
-
-    histo, edges = np.histogramdd((k_z_freq_3d.ravel(), k_transv_freq_3d.ravel()), 
-                                  bins=(k_bintab_z.value, k_bintab_transv.value))
+def sorted_files_by_n(directory, tile_sizes):
+    # List all files in the directory
+    files = os.listdir(directory)
     
-    # Compute the weighted sums for k_z and k_transv
-    k_out_z = np.histogramdd((k_z_freq_3d.ravel(), k_transv_freq_3d.ravel()), 
-                             bins=(k_bintab_z.value, k_bintab_transv.value), 
-                             weights=k_z_freq_3d.ravel())[0]
+    sorted_files = []
     
-    k_out_transv = np.histogramdd((k_z_freq_3d.ravel(), k_transv_freq_3d.ravel()), 
-                                  bins=(k_bintab_z.value, k_bintab_transv.value), 
-                                  weights=k_transv_freq_3d.ravel())[0]
-
-    pk_out = np.histogramdd((k_z_freq_3d.ravel(), k_transv_freq_3d.ravel()), 
-                            bins=(k_bintab_z.value, k_bintab_transv.value), 
-                            weights=pow_sqr.ravel())[0]
-
-    # Normalize by the histogram counts
-    k_out_z /= histo
-    k_out_transv /= histo
-    pk_out /= histo
-
-    # Set up the figure and axis
-    fig, (axsphere, axcyl) = plt.subplots(1,2,figsize=(8, 8))
-    axsphere.loglog(k_out_sphere, pk_out_sphere, 'k')
-    axsphere.set_title('Spherical power spectrum')
-    axsphere.set_ylabel('Power Spectrum $\\rm P(k) [Jy^2/sr^2.Mpc^3]$')
-    axsphere.set_xlabel('$\\rm k$ [$\\rm Mpc^{-1}$]')
-    # Use pcolormesh to create the 2D histogram plot with logarithmic color scaling
-    # We need to provide the bin edges for the plot
-    k_z_edges, k_transv_edges = edges
-    axcyl.set_title('Cylindrical power spectrum')
-    c = axcyl.pcolormesh(k_z_edges, k_transv_edges, pk_out.T, 
-                      shading='auto', cmap='viridis', norm=LogNorm())
-    # Add a colorbar
-    colorbar = plt.colorbar(c, ax=axcyl)
-    colorbar.set_label('Power Spectrum $\rm P(k) [Jy^2/sr^2.Mpc^3]$')
-    # Set the axis labels
-    axcyl.set_xlabel('$\\rm k_{\\parallel}$ [$\\rm Mpc^{-1}$]')
-    axcyl.set_ylabel('$\\rm k_{\\perp}$ [$\\rm Mpc^{-1}$]')
-    # Set log scales for the axes
-    axcyl.set_xscale('log')
-    axcyl.set_yscale('log')
-    # Show the plot
-    fig.tight_layout()
-    plt.show()
-
-    embed()
-
-    return k_out_sphere, k_out_transv, k_out_z, pk_out_sphere, pk_out
+    for tile_sizeRA, tile_sizeDEC in tile_sizes:
+        # Define the regex pattern to match the files and extract 'n'
+        pattern = re.compile(f'pySIDES_from_uchuu_tile_(\d+)_({tile_sizeRA}deg_x_{tile_sizeDEC}deg)\.fits')
+        
+        # Create a list of tuples (n, filename)
+        files_with_n = []
+        for filename in files:
+            match = pattern.match(filename)
+            if match:
+                n = int(match.group(1))
+                files_with_n.append((n, filename))
+        
+        # Sort the list by the value of 'n'
+        files_with_n.sort(key=lambda x: x[0])
+        
+        # Extract the sorted filenames
+        sorted_filenames = [filename for n, filename in files_with_n]
+        sorted_files.extend(sorted_filenames)
+    
+    return sorted_files
 
 def gen_spatial_spectral_cube(cat, cat_name, pars):
     
@@ -221,7 +150,7 @@ def gen_spatial_spectral_cube(cat, cat_name, pars):
 
     return 0
 
-def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=0.5):
+def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=0.5):  
 
     cat = cat.loc[np.abs(cat['redshift']-z_center) <= Delta_z/2]
 
@@ -237,11 +166,6 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
 
     angular_grid =  np.array(np.meshgrid(ragrid_bins,decgrid_bins))
 
-    embed()
-
-    cube_MJy_per_sr_per_Mpc, edges = np.histogramdd(sample = (np.asarray(cat['redshift']), cat['ra'], cat['dec']), 
-                                            bins = (z_bins, ragrid_bins, decgrid_bins), weights = cat[f'I{line}'])
-
     #compute the coordinates in the cube in comoving Mpc
     Dc_center = cosmo.comoving_distance(z_list).value
     ragrid =np.arange(cat['ra'].min() , cat['ra'].max(),res)
@@ -251,12 +175,19 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
     ys = Dc_center * ( ragrid[:, np.newaxis]  - ra_center)  * (np.pi/180) * np.cos(np.pi/180*ragrid[:, np.newaxis])
     xs = Dc_center * ( decgrid[:, np.newaxis] - dec_center) * (np.pi/180)
 
-    #convert to the proper unit (MJy/sr/Mpc3)
+
+    L = cat[f'I{line}'] * 1.04e-3 * cat['Dlum']**2 * rest_freq/(1+cat['redshift'])
+    I = L * (cst.c*1e-3) * 4.02e7 / (4*np.pi) / rest_freq.to(u.Hz).value / cosmo.H(cat['redshift']).value   # in Lsun / Mpc^2 * Mpc^2/Sr * Mpc/Hz
+
+    cube_MJy_per_sr_per_Mpc, edges = np.histogramdd(sample = (np.asarray(cat['redshift']), cat['ra'], cat['dec']), 
+                                            bins = (z_bins, ragrid_bins, decgrid_bins), weights = I)
+
+    #convert to the proper unit (Jy/sr/Mpc3)
     transverse_res_list = []
     radial_res_list = []
     for i, z in enumerate(z_list):
         dv_voxel = np.abs(ys[0,i]-ys[1,i]) * np.abs(xs[0,i]-xs[1,i]) * (cosmo.comoving_distance(z+dz/2) - cosmo.comoving_distance(z-dz/2)).value
-        cube_MJy_per_sr_per_Mpc[i,:,:] *=  1.e-6 / dv_voxel
+        cube_MJy_per_sr_per_Mpc[i,:,:] /= dv_voxel
         radial_res_list.append((cosmo.comoving_distance(z+dz/2) - cosmo.comoving_distance(z-dz/2)).value)
         transverse_res_list.append(np.sqrt(np.abs(ys[0,i]-ys[1,i]) * np.abs(xs[0,i]-xs[1,i])))
     mean_transverse_res = np.asarray(transverse_res_list).mean()
@@ -278,7 +209,7 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
         hdr[f"CUNIT{int(i+1)}"] = 'Mpc'
         #hdr[f"NAXIS{int(i+1)}"] = npix
 
-    output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_MJy_sr_{line}.fits'
+    output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}.fits'
     hdu.writeto(output_name, overwrite=True)
     print('save '+output_name)
     hdu.close()
@@ -303,8 +234,6 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
     pickle.dump(dict, open(pars['output_path']+f'{cat_name}_cube_3D_z{z_center}_MJy_sr_{line}.p', 'wb'))
     '''
 
-    embed()
-
 if __name__ == "__main__":
 
     params = load_params('PAR_FILES/SIDES_from_original_with_fir_lines.par')
@@ -317,57 +246,19 @@ if __name__ == "__main__":
     cat = cat.to_pandas()
     simu='pySIDES_from_bolshoi'; fs=2
     '''
+    bar = Bar('make the cubes', max=len(TIM_params['tile_sizes']))
 
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
 
-        pattern = f'{TIM_params["output_path"]}pySIDES_from_uchuu_tile_*_{tile_sizeRA}deg_x_{tile_sizeDEC}deg.fits'
         # List files matching the pattern
-        files = list_files(pattern)
+        files = sorted_files_by_n(TIM_params["output_path"], (tile_sizeRA, tile_sizeDEC))
         
-        for file in files:
+        for l, file in enumerate(files):
 
             cat = Table.read(file)
             cat = cat.to_pandas()
     
-            gen_spatial_spectral_cube(cat, file[len(TIM_params["output_path"]):-5], TIM_params)
-
             for z_center, dz in zip(TIM_params['z_centers'], TIM_params['dz']): 
 
-                gen_comoving_cube(cat, file[len(TIM_params["output_path"]):-5], TIM_params, 'CII_de_Looze', freq_CII,
+                gen_comoving_cube(cat, file[:-5], TIM_params, 'CII_de_Looze', freq_CII,
                                   z_center=z_center, Delta_z=dz)
-
-                pk_cylindre, k_2d = p_of_k_for_comoving_cube(f'{TIM_params["output_path"]}/{file[len(TIM_params["output_path"]):-5]}_cube_3D_z{z_center}_MJy_sr_CII_de_Looze.fits', TIM_params)
-                #pk_cylindre, k_2d = pk_spherical()
-
-
-
-    """
-def powspec(pos_x,pos_y,pos_z,
-            l_line,redshift,
-            cosmo,box_edge_no_h,wavelength,kbins):
-    
-    if len(pos_x) == 0:
-        return None
-
-    d = cosmo.comoving_distance(redshift).value       # comoing distance at z in Mpc
-    dl = (1+redshift)*d                               # luminosity distance to z in Mpc
-    y = wavelength * (1+redshift)**2 / (1000*cosmo.H(redshift).value)  # derivative of distance with respect to frequency in Mpc / Hz
-
-    pixel_size = 1
-    side_length = (box_edge_no_h//pixel_size)*pixel_size   # Cut off the edge of the box if it doesn't match pixel size
-    center_point = np.array([side_length/2,side_length/2,side_length/2])
-
-    positions = np.array([pos_x,pos_y,pos_z]).T
-
-    intensities = l_line / pixel_size**3 / (4*np.pi*dl**2) * d**2 * y  # in Lsun/Mpc^3 / Mpc^2 * Mpc^2/Sr * Mpc/Hz
-    intensities = intensities * 3.828e26 / 3.0857e22**2 *1e26               # in Jy/Sr
-    intensities[np.isnan(intensities)] = 0
-
-    grid = Gridder(positions,intensities,center_point=center_point,side_length=side_length,pixel_size=pixel_size,axunits='Mpc',gridunits='Jy/Sr')
-    ps = grid.power_spectrum(in_place=False,normalize=True)
-
-    ax1d, ps1d = ps.spherical_average(ax=[0,1,2],shells=kbins/(2*np.pi))
-    ps1d = ps1d[:,0] / side_length**3
-
-    return ps1d
-    """
