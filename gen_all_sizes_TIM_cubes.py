@@ -234,6 +234,9 @@ if __name__ == "__main__":
     simu='pySIDES_from_bolshoi'; fs=2
     '''
 
+    embed()
+
+
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
 
         # List files matching the pattern
