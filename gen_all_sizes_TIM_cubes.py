@@ -6,12 +6,10 @@ from pysides.load_params import *
 import argparse
 import time
 import matplotlib
-
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LogNorm
 import matplotlib.patches as patches
-
 import re
 import glob
 
@@ -201,6 +199,29 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
     print('save '+output_name)
     hdu.close()
 
+    output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_Jy_sr_galaxies.fits'
+    if(not os.path.isfile(output_name)):
+        cat = cat.loc[cat['Mstar']>pars['Mstar_lim']]
+        cube_g, edges = np.histogramdd(sample = (np.asarray(cat['redshift']), cat['ra'], cat['dec']), 
+                                                bins = (z_bins, ragrid_bins, decgrid_bins))
+        #save the cube!
+        f= fits.PrimaryHDU(cube_g)
+        hdu = fits.HDUList([f])
+        hdr = hdu[0].header
+        hdr.set("cube")
+        hdr.set("Datas")
+        hdr["BITPIX"] = ("64", "array data type")
+        hdr["BUNIT"] = 'nb of gal'
+        hdr["DATE"] = (str(datetime.datetime.now()), "date of the creation")
+        for i, (vox_size, npix) in enumerate(zip(( mean_transverse_res, mean_transverse_res, mean_radial_res),
+                                                ( len(ragrid),         len(decgrid),        len(z_list) ))):
+            hdr[f"CDELT{int(i+1)}"] = vox_size
+            hdr[f"CUNIT{int(i+1)}"] = 'Mpc'
+            #hdr[f"NAXIS{int(i+1)}"] = npix
+        hdu.writeto(output_name, overwrite=True)
+        print('save '+output_name)
+        hdu.close()
+
     return 0
 
     '''
@@ -225,14 +246,6 @@ if __name__ == "__main__":
 
     params = load_params('PAR_FILES/SIDES_from_original_with_fir_lines.par')
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
-
-    #With SIDES Bolshoi, for rapid tests. 
-    '''
-    dirpath="/home/mvancuyck/"
-    cat = Table.read(dirpath+'pySIDES_from_original.fits')
-    cat = cat.to_pandas()
-    simu='pySIDES_from_bolshoi'; fs=2
-    '''
 
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
 
