@@ -109,7 +109,7 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
         k_out_transv /= histo
         pk_out /= histo
         xpk_out /= histo
-
+        '''
         # Set up the figure and axis
         fig, axs = plt.subplots(2,2,figsize=(8,4), sharex=True, dpi=200)
         axsphere, axcyl = axs[0,0], axs[0,1]
@@ -153,7 +153,6 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
         # Show the plot
         fig.tight_layout()
         fig.subplots_adjust(hspace=0)
-
         plt.rcParams.update({'font.size': 10})
         plt.rcParams.update({'xtick.direction':'in'})
         plt.rcParams.update({'ytick.direction':'in'})
@@ -164,6 +163,7 @@ def p_of_k_for_comoving_cube(cat_name,line,z_center, pars, recompute=False):
         fig.savefig(f'figures/{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}_3dpk_tab.png', transparent=True)
 
         plt.close()
+        '''
 
         dict = {'k_out_sphere #Mpc-1':k_out_sphere, 
                 'k_out_transv #Mpc-1':k_out_transv, 
