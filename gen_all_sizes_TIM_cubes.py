@@ -179,25 +179,26 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
     mean_radial_res = np.asarray(radial_res_list).mean()
 
     #save the cube!
-    f= fits.PrimaryHDU(cube_MJy_per_sr_per_Mpc)
-    hdu = fits.HDUList([f])
-    hdr = hdu[0].header
-    hdr.set("cube")
-    hdr.set("Datas")
-    hdr["BITPIX"] = ("64", "array data type")
-    hdr["BUNIT"] = 'MJy/sr'
-    hdr["DATE"] = (str(datetime.datetime.now()), "date of the creation")
-
-    for i, (vox_size, npix) in enumerate(zip(( mean_transverse_res, mean_transverse_res, mean_radial_res),
-                                             ( len(ragrid),         len(decgrid),        len(z_list) ))):
-        hdr[f"CDELT{int(i+1)}"] = vox_size
-        hdr[f"CUNIT{int(i+1)}"] = 'Mpc'
-        #hdr[f"NAXIS{int(i+1)}"] = npix
-
     output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}.fits'
-    hdu.writeto(output_name, overwrite=True)
-    print('save '+output_name)
-    hdu.close()
+    if(not os.path.isfile(output_name)):
+        f= fits.PrimaryHDU(cube_MJy_per_sr_per_Mpc)
+        hdu = fits.HDUList([f])
+        hdr = hdu[0].header
+        hdr.set("cube")
+        hdr.set("Datas")
+        hdr["BITPIX"] = ("64", "array data type")
+        hdr["BUNIT"] = 'MJy/sr'
+        hdr["DATE"] = (str(datetime.datetime.now()), "date of the creation")
+
+        for i, (vox_size, npix) in enumerate(zip(( mean_transverse_res, mean_transverse_res, mean_radial_res),
+                                                ( len(ragrid),         len(decgrid),        len(z_list) ))):
+            hdr[f"CDELT{int(i+1)}"] = vox_size
+            hdr[f"CUNIT{int(i+1)}"] = 'Mpc'
+            #hdr[f"NAXIS{int(i+1)}"] = npix
+
+        hdu.writeto(output_name, overwrite=True)
+        print('save '+output_name)
+        hdu.close()
 
     output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_Jy_sr_galaxies.fits'
     if(not os.path.isfile(output_name)):
