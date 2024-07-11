@@ -121,5 +121,5 @@ def set_k_infos(ny, nx, res, delta_k_over_k = 0):
     k_out, edges = np.histogram(k_map, bins = k_bin_tab, weights = k_map)
     histo, edegs = np.histogram(k_map, bins = k_bin_tab)
     k_out = k_out / histo
-    return k_nyquist, k_min, k_bin_width, k_bin_tab, k_out, k_map
+    return k_nyquist, k_min, k_bin_width, k_bin_tab, k_out, k_map, histo
 
