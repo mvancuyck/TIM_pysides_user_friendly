@@ -250,7 +250,6 @@ if __name__ == "__main__":
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
         print(tile_sizeRA, tile_sizeDEC)
         
-
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
         
