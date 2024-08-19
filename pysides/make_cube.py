@@ -244,7 +244,6 @@ def channel_flux_densities(cat, params_sides, params):
 
     return Snu_arr
 
-
 def make_continuum_cube(cat, params_sides, params, cube_prop_dict):
 
     continuum_nobeam_Jypix = []
@@ -259,7 +258,6 @@ def make_continuum_cube(cat, params_sides, params, cube_prop_dict):
     continuum_cubes = save_cubes(np.asarray(continuum_nobeam_Jypix), cube_prop_dict, params_sides, params, 'continuum', just_compute = not params['save_continuum_only'])
     
     return continuum_cubes
-
 
 def line_channel_flux_densities(line, rest_freq, cat, cube_prop_dict):
 
@@ -342,7 +340,6 @@ def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict):
     
     return FIR_lines_cubes
 
-
 def make_ci_cube(cat, params_sides, params, cube_prop_dict):
 
     line_names = ['CI10', 'CI21']
@@ -373,7 +370,6 @@ def make_ci_cube(cat, params_sides, params, cube_prop_dict):
 
     return CI_both_cubes
 
-
 def make_cube(cat ,params_sides, params_cube,):
 
     print("Set World Coordinates System...")
@@ -385,7 +381,7 @@ def make_cube(cat ,params_sides, params_cube,):
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
         
     print("Create continuum cubes..")                                                                              
-    #continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
+    continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
 
     print("Create CO cubes...")
     CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict)
