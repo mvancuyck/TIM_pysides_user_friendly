@@ -151,7 +151,6 @@ if __name__ == "__main__":
             cat = Table.read(TIM_params["output_path"]+file)
             cat = cat.to_pandas()
     
-            params_sides = load_params('PAR_FILES/SIDES_from_original.par')
             params_cube = load_params("PAR_FILES/Uchuu_cubes_for_TIM.par")
             params_cube['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}"
 
