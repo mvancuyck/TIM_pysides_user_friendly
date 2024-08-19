@@ -246,6 +246,8 @@ def channel_flux_densities(cat, params_sides, params):
 
 def make_continuum_cube(cat, params_sides, params, cube_prop_dict):
 
+    embed()
+
     continuum_nobeam_Jypix = []
 
     channels_flux_densities = channel_flux_densities(cat, params_sides,params)
@@ -391,7 +393,7 @@ def make_cube(cat ,params_sides, params_cube,):
 
     CII_relations_2compute = []
 
-    keys_computed_cubes = list(continuum_cubes.keys()) #if a type of cube is computed, then it is computed for all the components
+    keys_computed_cubes = list(CO_cubes.keys()) #if a type of cube is computed, then it is computed for all the components
     
     if (params_cube['gen_cube_CII_Lagache']):
         CII_relations_2compute.append('Lagache')
