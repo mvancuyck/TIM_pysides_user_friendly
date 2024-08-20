@@ -230,11 +230,11 @@ def save_cubes(cube_input, cube_prop_dict, params_sides, params, component_name,
     
     return cubes_dict
 
-def channel_flux_densities(cat, params_sides, params):
+def channel_flux_densities(cat, params_sides, cube_prop_dict):
 
-    embed()
-
-    channels = np.linspace(params['freq_min'], params['freq_max'], int(1+(params['freq_max'] - params['freq_min'])/params['freq_resol']))
+    z = np.arange(0,cube_prop_dict['shape'][0],1)
+    w = cube_prop_dict['w']
+    channels = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
     lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um)
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
     print("Generate CONCERTO monochromatic fluxes...")
@@ -247,8 +247,7 @@ def make_continuum_cube(cat, params_sides, params, cube_prop_dict):
 
     continuum_nobeam_Jypix = []
 
-    channels_flux_densities = channel_flux_densities(cat, params_sides,params)
-    embed()
+    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict)
 
     for f in range(0, cube_prop_dict['shape'][0]):      
         row = channels_flux_densities[:,f] #Jy/pix
