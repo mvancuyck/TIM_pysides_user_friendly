@@ -41,6 +41,7 @@ def sorted_files_by_n(directory, tile_sizes):
     
     return sorted_files
 
+'''
 def gen_spatial_spectral_cube(cat, cat_name, pars):
     
     #The prefix used to save the outputs maps:
@@ -133,6 +134,7 @@ def gen_spatial_spectral_cube(cat, cat_name, pars):
                   cube_prop_dict, 'pix', pars['output_path']+cat_name, False, cube=galaxy_cube) 
 
     return 0
+'''
 
 if __name__ == "__main__":
 
