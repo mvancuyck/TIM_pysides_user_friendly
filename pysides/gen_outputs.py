@@ -19,7 +19,7 @@ def gen_outputs(cat, params):
         pickle.dump(cat, open(params['output_path']+params['run_name']+'.p', 'wb'))
         
     if params['gen_fits'] == True:
-        print('Export the catalog to FITS... (',params['output_path']+params['run_name']+'.fits', ')')
+        print('Export the catalog to FITS... (',params['output_path']+'/'+params['run_name']+'.fits', ')')
         ap_table = Table.from_pandas(cat)
 
         #add units to the fields
