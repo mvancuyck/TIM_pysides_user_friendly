@@ -207,7 +207,7 @@ def save_cubes(cube_input, cube_prop_dict, params_sides, params, component_name,
     if not just_compute:
         for cube_type in cubes2save:
 
-            filename = params["output_path"] + params["run_name"] + '_' + component_name + '_' +cube_type + '.fits'
+            filename = params["output_path"] + '/' +  params["run_name"] + '_' + component_name + '_' +cube_type + '.fits'
             
             print('Write '+filename+'...')
             
