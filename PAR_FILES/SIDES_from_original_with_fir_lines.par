@@ -1,7 +1,7 @@
 
 #####Output parameters########
 
-output_path = 'OUTPUT_TIM_CUBES_FROM_UCHUU'
+output_path = 'OUTPUT_TIM_CUBES_FROM_UCHUU/'
 run_name = 'pySIDES_from_original_fir_lines'
 
 gen_fits = True
