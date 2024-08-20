@@ -26,7 +26,6 @@ def gen_radec(cat, params):
 
     return ra, dec 
 
-
 def set_wcs(cat,params):
 
     #-----------------SET WCS-----------------
@@ -88,7 +87,6 @@ def set_wcs(cat,params):
 
     return wcs_dict
 
-
 def set_kernel(params, cube_prop_dict):
 
     #Produce a list of Nchannel convolution kernels corresponding to the beam in each channel
@@ -99,6 +97,8 @@ def set_kernel(params, cube_prop_dict):
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
     freq_list = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
+
+    embed()
     
     for freq in freq_list:
         fwhm = ((1.22 * cst.c) / (freq * params["telescop_diameter"])) * u.rad
@@ -112,7 +112,6 @@ def set_kernel(params, cube_prop_dict):
         beam_area_pix2.append(np.sum(kernel_channel.array))
         
     return kernel, np.array(beam_area_pix2)
-
 
 def save_cube(output_path, run_name, component_name, cube_type, cube_prop_dict, unit, input_cat, save_smoothed=True,cube=None, 
               recompute = False): 
@@ -156,7 +155,6 @@ def save_cube(output_path, run_name, component_name, cube_type, cube_prop_dict, 
         cube=fits.getdata(filename)
         hdr = fits.getheader(filename)
         return 0 # cube, hdr
-
 
 def save_cubes(cube_input, cube_prop_dict, params_sides, params, component_name, just_save = False, just_compute = False):
 
