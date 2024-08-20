@@ -141,7 +141,6 @@ if __name__ == "__main__":
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
 
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
-        print(tile_sizeRA, tile_sizeDEC)
         
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
