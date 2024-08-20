@@ -151,6 +151,6 @@ if __name__ == "__main__":
             cat = cat.to_pandas()
     
             params_cube = load_params("PAR_FILES/Uchuu_cubes_for_TIM.par")
-            params_cube['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}"
+            params_cube['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg"
 
             make_cube(cat ,params_sides, params_cube)
