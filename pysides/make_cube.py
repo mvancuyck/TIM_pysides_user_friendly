@@ -396,11 +396,11 @@ def make_cube(cat ,params_sides, params_cube,):
         CII_relations_2compute.append('Lagache')
     if (params_cube['gen_cube_CII_de_Looze']):
         CII_relations_2compute.append('de_Looze')
-
+    '''
     if params_cube['add_fir_lines']:
         print('add FIR lines...')
-        #FIR_lines_cubes = make_fir_lines_cube(cat, params_sides, params_cube, cube_prop_dict)
-
+        FIR_lines_cubes = make_fir_lines_cube(cat, params_sides, params_cube, cube_prop_dict)
+    '''
     for CII_relation_name in CII_relations_2compute:
         CII_cubes = make_cii_cube(cat, params_sides, params_cube, cube_prop_dict, CII_relation_name)
 
@@ -414,9 +414,10 @@ def make_cube(cat ,params_sides, params_cube,):
             for key in keys_computed_cubes:
                 combined_cubes[key] += CII_cubes[key]
                 combined_cubes[key] += CI_cubes[key]
-                #if params_cube['add_fir_lines']:
-                    #combined_cubes[key] += FIR_lines_cubes[key]
-
+                '''
+                if params_cube['add_fir_lines']:
+                    combined_cubes[key] += FIR_lines_cubes[key]
+                '''
             if params_cube['save_all_lines']:
                 print('Save the cube(s) with all the lines...')
                 save_cubes(combined_cubes, cube_prop_dict, params_sides, params_cube, 'all_lines_'+CII_relation_name, just_save = True)
