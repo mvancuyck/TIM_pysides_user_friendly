@@ -134,8 +134,8 @@ def gen_spatial_spectral_cube(cat, cat_name, pars):
 
     return 0
 
-
 if __name__ == "__main__":
+    print('hey')
 
     params_sides = load_params('PAR_FILES/SIDES_from_original_with_fir_lines.par')
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
