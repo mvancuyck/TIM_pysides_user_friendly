@@ -221,209 +221,88 @@ def p_of_k_for_comoving_cube(cat_name,line,rest_freq, z_center, Delta_z,  fileca
     pickle.dump(dict, open(pars['output_path']+f'{cat_name}_cube_3D_z{z_center}_MJy_sr_{line}.p', 'wb'))
     '''
 
-def angular_p_of_k(catname, pars, line, rest_freq=None, 
-                   recompute=False, to_emb=False):
+def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile99_0.2deg_1deg_CII_de_Looze_nobeam_MJy_sr.fits',
+                                        rest_freq = 1900.53690000 * u.GHz, dkk=0.1):
 
-    #----
-    path = pars['output_path']
-    dict_pks_name = f'dict_dir/{catname}_{line}.p'
-    dico_exists = os.path.isfile(dict_pks_name)
-    key_exists = False
-    if(dico_exists): 
-        dico_loaded = pickle.load( open(dict_pks_name, 'rb'))
-        key_exists = ('k #/arcmin' in dico_loaded.keys())
-    #--- 
-    if(not key_exists or recompute):
+    #Naive Non-Uniform power spectrum
+    #I need to investigate more references.
 
-        if(to_emb): embed()
+    #Load the angular spectral cube and its header 
+    hdu = fits.open(cubefile)
+    hdr = hdu[0].header
+    angular_cube = (hdu[0].data * u.MJy/u.sr).to(u.Jy/u.sr) #u.Unit(hdr['BUNIT'])
+    w = wcs.WCS(hdr)   
+    
+    #Set the redshift axis  append=x[-1]
+    freqs = np.linspace(0,hdr['NAXIS3'],hdr['NAXIS3']+1)
+    freq_list = w.swapaxes(0, 2).sub(1).wcs_pix2world(freqs, 0)[0] * u.Unit(hdr['CUNIT3'])
 
-        dkk = pars['dkk']
+    freqmin = (rest_freq.to(hdr['CUNIT3'])) / (1+z_center+Delta_z/2)
+    freqmax = (rest_freq.to(hdr['CUNIT3'])) / (1+z_center-Delta_z/2)
+    fmin = np.where(freq_list>= freqmin)[0][0]
+    fmax = np.where(freq_list<= freqmax)[0][-1]
+    freq_list = freq_list[fmin:fmax+2]
+    angular_cube = angular_cube[fmin:fmax+1]
 
-        LIM = fits.getdata(f"{path}/{catname}_{line}_MJy_sr.fits")*u.MJy/u.sr
-        LIM_smoothed = fits.getdata(f"{path}/{catname}_{line}_MJy_sr_smoothed.fits")*u.MJy/u.sr
-        Gal = fits.getdata(f"{path}/{catname}_galaxies_pix.fits")
+    redshift_list = (rest_freq.to(hdr['CUNIT3']) / freq_list - 1 ).value    
+    #xpixlist = np.linspace(0,hdr['NAXIS2'],hdr['NAXIS2']+1)
+    #ypixlist = np.linspace(0,hdr['NAXIS1'],hdr['NAXIS1']+1)
+    Nmax = np.max((hdr['NAXIS2'],hdr['NAXIS1']))
 
-        hdr = fits.getheader(f"{path}/{catname}_{line}_MJy_sr.fits")
-        res = hdr["CDELT1"]* u.Unit(hdr["CUNIT1"]) 
-        npix = hdr["NAXIS1"] * hdr["NAXIS2"]
-        field_size = ( npix * res**2 ).to(u.deg**2)
-        dnu = np.round( (hdr["CDELT3"] * u.Unit(hdr["CUNIT3"])).to(u.GHz).value, 2)
-        w = wcs.WCS(hdr)  
-        spec_axis = np.arange(0,hdr['NAXIS3'],1)
-        freq_list = w.swapaxes(0, 2).sub(1).wcs_pix2world(spec_axis, 0)[0] * u.Unit(hdr["CUNIT3"])
+    xpixlist = np.linspace(0,Nmax,Nmax+1)
+    ypixlist = np.linspace(0,Nmax,Nmax+1)
+    ra ,dec = w.celestial.wcs_pix2world( ypixlist, xpixlist, 0)*u.deg
+    xpixgrid = list(np.linspace(-0.5,hdr['NAXIS2']+0.5,hdr['NAXIS2']+2))
+    ypixgrid = list(np.linspace(-0.5,hdr['NAXIS1']+0.5,hdr['NAXIS1']+2))
+    ragrid , decgrid = w.celestial.wcs_pix2world( ypixlist, xpixlist , 0) *u.deg
+    ra_center = np.mean(ragrid)
+    dec_center = np.mean(decgrid)
+    delta_ra = np.max(ragrid) - np.min(ragrid)
+    delta_dec = np.max(decgrid) - np.min(decgrid)
+    #all the coordinates will be in comoving units
+    Dc_center = cosmo.comoving_distance(redshift_list)
 
-        k_nyquist, k_min, delta_k, k_bintab, k, k_map, nb_mode_count = set_k_infos(hdr["NAXIS2"],hdr["NAXIS1"], res, delta_k_over_k = dkk)
+    #compute the coordinates in the cube
+    y_Mpc = Dc_center[:,np.newaxis] * (( ra[ np.newaxis,:]  - ra_center)  * (np.pi/180) * np.cos(np.pi/180*ragrid[ np.newaxis,:])).value
+    x_Mpc = Dc_center[:,np.newaxis] * (( dec[ np.newaxis,:] - dec_center) * (np.pi/180)).value
 
-        pk_im_1d = []
-        pk_imB_1d = []
-        pk_p2 = []
-        pk_im_1d_smoothed = []
-        pk_p2_smoothed = []
-        for i in range(LIM.shape[0]):
-            #----x
-            gal_mean =  Gal[i,:,:].mean()
-            if(gal_mean <0): continue
-            else: Gal[i,:,:] /= gal_mean
-            #----            
-            pk, _ = my_p2(LIM[i,:,:], res, k_bintab, u.Jy**2/u.sr, u.arcmin**-1 )
-            pk_im_1d.append( pk.value ) 
-            p_imB, _ = my_p2(Gal[i,:,:], res, k_bintab, u.sr, u.arcmin**-1 )
-            pk_imB_1d.append(p_imB.value)
-            pk, _    = my_p2(Gal[i,:,:], res, k_bintab, u.Jy, u.arcmin**-1, map2 = LIM[i,:,:])
-            pk_p2.append(pk.value)
+    dept_vox = np.abs(np.diff(Dc_center))
+    area_vox = np.zeros(( int(fmax-fmin+1), Nmax , Nmax ))  
+    area_vox[:,:,:] = np.diff(y_Mpc[:1,:], axis=1)[:,:,np.newaxis] * np.diff(x_Mpc[:1,:], axis=1)[:,np.newaxis,:]
+    v_vox = dept_vox[:,np.newaxis, np.newaxis] * area_vox[:, :,:]   
+    angular_cube /= v_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']]
 
-            pk, _ = my_p2(LIM_smoothed[i,:,:], res, k_bintab, u.Jy**2/u.sr, u.arcmin**-1 )
-            pk_im_1d_smoothed.append( pk.value ) 
-            pk, _    = my_p2(Gal[i,:,:], res, k_bintab, u.Jy, u.arcmin**-1, map2 = LIM_smoothed[i,:,:])
-            pk_p2_smoothed.append(pk.value)
 
-        dict = {'species':line,
-                'cube':f"{path}/{catname}_{line}_MJy_sr.fits", 
-                'Galaxies':f"{path}/{catname}_galaxies_pix.fits",
-                'dnu #GHz':dnu,
-                'k #/arcmin': k.to(u.arcmin**-1),
-                'k_map #/arcmin':k_map.to(u.arcmin**-1),
-                'k_nyquist #/arcmin':  k_nyquist.to(u.arcmin**-1),
-                'k_min #/arcmin':k_min.to(u.arcmin**-1),
-                'kbin #/arcmin':k_bintab.to(u.arcmin**-1),
-                'nb_mode_count': nb_mode_count,
-                'res #rad':res.to(u.rad),
-                'pk_species #Jy2/sr': np.asarray(pk_im_1d),
-                'pk_gal #sr': np.asarray(pk_imB_1d),      
-                'pk_species-gal #Jy': np.asarray(pk_p2),
-                'pk_species smoothed #Jy2/sr': np.asarray(pk_im_1d_smoothed),
-                'pk_species-gal smoothed #Jy': np.asarray(pk_p2_smoothed),
-                'freq_list #Hz':freq_list}
-        # Set up the figure and axis
-        fig, (axJ, axG, axJG,axnb) = plt.subplots(1,4,figsize=(16,4), dpi=200)
-        for i, (ax, y,y_smoothed, unit) in enumerate(zip((axJ, axG, axJG),
-                                            (dict['pk_species #Jy2/sr'],dict['pk_gal #sr'],dict['pk_species-gal #Jy']),
-                                            (dict['pk_species smoothed #Jy2/sr'],dict['pk_gal #sr'],dict['pk_species-gal smoothed #Jy']),
-                                            ('$\\rm P(k) [Jy^2/sr$]', '$\\rm P_G(k) [sr]$', '$\\rm P_X(k) [Jy/sr]$'))):
-            x = dict['k #/arcmin']
-            if(i==1): ax.set_title(f"{catname}_{line}, \n res={np.round(dict['res #rad'].to(u.arcsec), 2)}")
-            for i,c in zip(range(LIM.shape[0]), cm.plasma(np.linspace(0,1,LIM.shape[0]))):
-                ax.loglog(x, y[i,:], c=c)
-                ax.loglog(x, y_smoothed[i,:], c=c, ls=':')
-            ax.set_xlabel('k [$\\rm arcmin^{-1}$]')
-            ax.set_ylabel(unit)
-        axnb.loglog(x, dict['nb_mode_count'], '-ok')
-        axnb.set_xlabel('k [$\\rm arcmin^{-1}$]')
-        axnb.set_ylabel('Nb count of modes')
-        fig.tight_layout()
-        fig.savefig('figures/{catname}_{line}.png', transparent=True)
-        plt.close()
-        
-        if(rest_freq is not None):
+    res_perp = (area_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']].mean())**(1/2)
+    res_rad  =  dept_vox.mean()
+    res_avg = (v_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']].mean())*(1/3)
 
-            z_list = (rest_freq.to(u.GHz) / freq_list.to(u.GHz) ).value - 1 
+    kz = 2*np.pi*give_map_spatial_freq_one_axis(res_rad, len(Dc_center))
+    kmaps_list = []
+    for z in range(int(fmax-fmin+1)):
+        res = (area_vox[z,:hdr['NAXIS2'],:hdr['NAXIS1']].mean())
+        kmap = 2*np.pi*give_map_spatial_freq(res, angular_cube.shape[1], angular_cube.shape[2])
+        kmaps_list.append(kmap)
 
-            cat = Table.read(f'{path}/'+file)
-            cat = cat.to_pandas()
+    kmaps_list = np.asarray(kmaps_list)
+    k = np.sqrt(np.asarray(kmaps_list)**2+kz[:-1,np.newaxis, np.newaxis].value**2)/u.Mpc
+    dk_min = 2 / ( np.min([hdr['NAXIS1'],hdr['NAXIS2'],hdr['NAXIS3']]) * res_avg )
 
-            spec_axis_edges = np.arange(0-0.5,hdr['NAXIS3']+0.5,1)
-            freqs_edges = w.swapaxes(0, 2).sub(1).wcs_pix2world(spec_axis_edges, 0)[0] * u.Unit(hdr["CUNIT3"])
-            #------
-            freq_obs = (rest_freq.value / (1 + cat['redshift']))
-            vdelt = (cst.c * 1e-3) * dnu / freq_obs #km/s
-            #------
-            hist, edges = np.histogram( freq_obs, bins = freqs_edges.to(u.GHz).value, weights = (cat[f"I{line}"]/vdelt)**2)
-            p_snlist = hist * u.Jy**2 / field_size.to(u.sr) 
-            dict['LIM_shot_list #Jy2/sr'] = p_snlist
-            #------
-            hist, edges = np.histogram( freq_obs, bins = freqs_edges.to(u.GHz).value, weights = cat[f"I{line}"]/vdelt)
-            Ilist = hist * u.Jy / field_size.to(u.sr)
-            dict['I_list #Jy/sr']= Ilist
-            #------
-            cat_galaxies = cat.loc[cat["Mstar"] >= 1e10]
-            freq_obs_g = (rest_freq.value / (1 + cat_galaxies['redshift']))
-            vdelt = (cst.c * 1e-3) * dnu / freq_obs_g #km/s
-            #------        
-            hist, edges = np.histogram( freq_obs_g, bins = freqs_edges.to(u.GHz).value)
-            snlist = 1 / (hist / field_size.to(u.sr)).value
-            dict["gal_shot_list #sr"]=snlist
-            #------        
-            hist_I, edges = np.histogram( freq_obs_g, bins = freqs_edges.to(u.GHz).value, weights =cat_galaxies[f"I{line}"]/vdelt)
-            I_X =  hist_I * u.Jy / field_size.to(u.sr)
-            sn_lineshotlist = I_X * snlist
-            dict["LIMgal_shot #Jy/sr"]= sn_lineshotlist
+    k_bins, k_width = make_bintab(k.value, dk_min.value, dkk=dkk)
 
-            fig, (axI, axSN, axG, axJG) = plt.subplots(1,4,figsize=(16,4), dpi=200)
-            for i, (ax, value, unit) in enumerate(zip((axSN, axI, axG, axJG),
-                                                (dict['LIM_shot_list #Jy2/sr'],dict['I_list #Jy/sr'],dict["gal_shot_list #sr"],dict["LIMgal_shot #Jy/sr"]),
-                                                ('Shot noise [$\\rm Jy^2/sr$]', 'Background intensity [$\\rm Jy/sr$]', 'Galaxy shot noise [$\\rm sr$]', 'Cross-shot noise [$\\rm Jy/sr$]'))):
-                x = freq_list / 1e9
-                ax.plot(x, value)
-                ax.set_xlabel('frequency [GHz]')
-                ax.set_ylabel(unit)
-                ax.set_yscale('log')
-                if(i==2): ax.set_title(f"{catname}_{line}")
+    normpk =  v_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']] / (hdr['NAXIS1'] * hdr['NAXIS2'] * hdr['NAXIS3'])
+    pow_sqr = np.absolute(np.fft.fftn(angular_cube)**2 * normpk )
 
-            fig.tight_layout()
-            fig.savefig('figures/{catname}_{line}_I_and_shotnoises.png', transparent=True)
-            plt.close()
-            
-            #------
-            '''
-            bias_line_t10 = []
-            bias_t10 = []
-            angular_k_list = []
-            p2d_list = []
-            Dc_list = []
-            delta_Dc_list = []
-            #for each channel:
+    norm_k, k_edges = np.histogram(k.value, bins=k_bins)
+    k_adress, k_edges = np.histogram(k.value, bins=k_bins, weights=k)
+    k_adress /= norm_k
+    p_of_k, k_edges = np.histogram(k.value, bins=k_bins, weights=pow_sqr)
+    p_of_k /= norm_k
 
-            for f, (freq,z) in enumerate(zip(freq_list.to(u.GHz).value, z_list)):
-                subcat = cat.loc[np.abs(freq_obs-freq) <= dnu/2]
+    plt.loglog(k_adress, p_of_k)
+    plt.show()
 
-                if(z<0 or len(subcat)==0 or (not 'CII' in line)): 
-                    bias_line_t10.append(0)
-                    bias_t10.append(0)
-                    angular_k_list.append(0)
-                    p2d_list.append(0)
-                    Dc_list.append(0)
-                    delta_Dc_list.append(0)
-                else: 
-                    #select sources in the channel
-                    freq_obs_subcat = (rest_freq.value / (1 + subcat['redshift']))
-                    vdelt = (cst.c * 1e-3) * dnu / freq_obs_subcat #km/s
-                    #-------------------------------------------------------------------------------------------
-                    #b eff using T10
-                    bias_subcat = bias.haloBias(subcat["Mhalo"]/h, model = 'tinker10', z=z, mdef = '200m')
-                    bias_line_t10.append( np.sum(bias_subcat * subcat[f'I{line}']) / np.sum(subcat[f'I{line}']) )
-                    #-------------------------------------------------------------------------------------------
-                    subcat = subcat.loc[subcat["Mstar"] >= 1e10]
-                    #-------------------------------------------------------------------------------------------
-                    #b using T10
-                    bias_subcat = bias.haloBias(subcat["Mhalo"]/h, model = 'tinker10', z=z, mdef = '200m')
-                    bias_t10.append( np.mean(bias_subcat) )
-
-                    angular_k, p2d, Dc, delta_Dc =  get_2d_pk_matter(z, freq*u.GHz, dnu)
-
-                    angular_k_list.append(angular_k)
-                    p2d_list.append(p2d)
-                    Dc_list.append(Dc)
-                    delta_Dc_list.append(delta_Dc)
-                    
-                    #-------------------------------------------------------------------------------------------
-            dict["beff_t10"] = np.asarray(bias_line_t10)
-            dict["beff_gal_t10"] = np.asarray(bias_t10)
-            dict['k_angular']= angular_k_list
-            dict['pk_matter_2d']= p2d_list
-            dict["Dc"]= np.asarray(Dc_list)
-            dict["delta_Dc"]= np.asarray(delta_Dc_list)
-            '''
-        if(not dico_exists): 
-            print("save the dict "+f'dict_dir/{catname}_{line}.p')
-            pickle.dump(dict, open(dict_pks_name, 'wb'))
-        else: 
-            print("update the dict"+f'dict_dir/{catname}_{line}.p')
-            dico_loaded.update(dict)
-            pickle.dump(dico_loaded, open(dict_pks_name, 'wb'))
-
-    else: print('load the dict'+f'dict_dir/{catname}_{line}.p')
-
-    dict = pickle.load( open(dict_pks_name, 'rb'))
+    return k_adress, p_of_k
 
 if __name__ == "__main__":
 
@@ -446,12 +325,14 @@ if __name__ == "__main__":
         for l, file in enumerate(files):
             
             dictl = {}
-            #if(tile_sizeRA != 0.2 and tile_sizeRA != 1.25 and l !=76): continue
 
             for z_center, dz in zip(TIM_params['z_centers'], TIM_params['dz']): 
 
                 dictl[f'pk_3D_z{z_center}_CII_de_Looze'] = p_of_k_for_comoving_cube(file[:-5],'CII_de_Looze',freq_CII, z_center, dz, file, TIM_params)
 
+                dictl[f'pk_3D_non-uniform_z{z_center}_CII_de_Looze'] = naive_NU_DF_PK_for_angular_spectral_cube(z_center, dz,
+                                                                                                                cubefile=f'OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_CII_de_Looze_nobeam_MJy_sr.fits',)
+
             dict_fieldsize[f'{l}'] = dictl
 
-        pickle.dump(dict_fieldsize, open('dict_dir/'+f'pySIDES_from_uchuu_{tile_sizeRA}deg_x_{tile_sizeDEC}deg.p', 'wb'))
+        pickle.dump(dict_fieldsize, open('dict_dir/'+f'pySIDES_from_uchuu_{tile_sizeRA}deg_x_{tile_sizeDEC}deg_pks.p', 'wb'))
