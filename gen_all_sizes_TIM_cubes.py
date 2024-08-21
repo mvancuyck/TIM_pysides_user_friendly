@@ -41,52 +41,54 @@ def sorted_files_by_n(directory, tile_sizes):
     
     return sorted_files
 
-def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=0.5):  
+def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=0.5):
 
-    cat = cat.loc[np.abs(cat['redshift']-z_center) <= Delta_z/2]
-
-    nu_obs = rest_freq / (1+z_center)
-    dz = ( pars['freq_resol'] / 1e9 ) * (1+z_center) / nu_obs.value
-    z_bins = np.arange(z_center-Delta_z/2-dz/2, z_center+Delta_z/2+dz/2, dz)
-    z_list = np.arange(z_center-Delta_z/2, z_center+Delta_z/2, dz)
-
-    res = (pars['pixel_size'] *u.arcsec).to(u.deg).value
-
-    ragrid_bins =np.arange(cat['ra'].min() -res/2,cat['ra'].max() +res/2,res)
-    decgrid_bins=np.arange(cat['dec'].min()-res/2,cat['dec'].max()+res/2,res)
-
-    angular_grid =  np.array(np.meshgrid(ragrid_bins,decgrid_bins))
-
-    #compute the coordinates in the cube in comoving Mpc
-    Dc_center = cosmo.comoving_distance(z_list).value
-    ragrid =np.arange(cat['ra'].min() , cat['ra'].max(),res)
-    decgrid=np.arange(cat['dec'].min(),cat['dec'].max(),res)
-    ra_center = np.mean(ragrid)
-    dec_center = np.mean(decgrid)
-    ys = Dc_center * ( ragrid[:, np.newaxis]  - ra_center)  * (np.pi/180) * np.cos(np.pi/180*ragrid[:, np.newaxis])
-    xs = Dc_center * ( decgrid[:, np.newaxis] - dec_center) * (np.pi/180)
-
-    L = cat[f'I{line}'] * 1.04e-3 * cat['Dlum']**2 * rest_freq/(1+cat['redshift'])
-    I = (L * (cst.c*1e-3) * 4.02e7 / (4*np.pi) / rest_freq.to(u.Hz) / cosmo.H(cat['redshift']))  # in Lsun / Mpc^2 * Mpc^2/Sr * Mpc/Hz
-
-    cube_MJy_per_sr_per_Mpc, edges = np.histogramdd(sample = (np.asarray(cat['redshift']), cat['ra'], cat['dec']), 
-                                            bins = (z_bins, ragrid_bins, decgrid_bins), weights = I)
-
-    #convert to the proper unit (Jy/sr/Mpc3)
-    transverse_res_list = []
-    radial_res_list = []
-    for i, z in enumerate(z_list):
-        dv_voxel = np.abs(ys[0,i]-ys[1,i]) * np.abs(xs[0,i]-xs[1,i]) * (cosmo.comoving_distance(z+dz/2) - cosmo.comoving_distance(z-dz/2)).value
-        cube_MJy_per_sr_per_Mpc[i,:,:] /= dv_voxel
-        radial_res_list.append((cosmo.comoving_distance(z+dz/2) - cosmo.comoving_distance(z-dz/2)).value)
-        transverse_res_list.append(np.sqrt(np.abs(ys[0,i]-ys[1,i]) * np.abs(xs[0,i]-xs[1,i])))
-    mean_transverse_res = np.asarray(transverse_res_list).mean()
-    mean_radial_res = np.asarray(radial_res_list).mean()
-
-    #save the cube!
     output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}.fits'
-
     if(not os.path.isfile(output_name)):
+
+
+        cat = cat.loc[np.abs(cat['redshift']-z_center) <= Delta_z/2]
+
+        nu_obs = rest_freq / (1+z_center)
+        dz = ( pars['freq_resol'] / 1e9 ) * (1+z_center) / nu_obs.value
+        z_bins = np.arange(z_center-Delta_z/2-dz/2, z_center+Delta_z/2+dz/2, dz)
+        z_list = np.arange(z_center-Delta_z/2, z_center+Delta_z/2, dz)
+
+        res = (pars['pixel_size'] *u.arcsec).to(u.deg).value
+
+        ragrid_bins =np.arange(cat['ra'].min() -res/2,cat['ra'].max() +res/2,res)
+        decgrid_bins=np.arange(cat['dec'].min()-res/2,cat['dec'].max()+res/2,res)
+
+        angular_grid =  np.array(np.meshgrid(ragrid_bins,decgrid_bins))
+
+        #compute the coordinates in the cube in comoving Mpc
+        Dc_center = cosmo.comoving_distance(z_list).value
+        ragrid =np.arange(cat['ra'].min() , cat['ra'].max(),res)
+        decgrid=np.arange(cat['dec'].min(),cat['dec'].max(),res)
+        ra_center = np.mean(ragrid)
+        dec_center = np.mean(decgrid)
+        ys = Dc_center * ( ragrid[:, np.newaxis]  - ra_center)  * (np.pi/180) * np.cos(np.pi/180*ragrid[:, np.newaxis])
+        xs = Dc_center * ( decgrid[:, np.newaxis] - dec_center) * (np.pi/180)
+
+        L = cat[f'I{line}'] * 1.04e-3 * cat['Dlum']**2 * rest_freq/(1+cat['redshift'])
+        I = (L * (cst.c*1e-3) * 4.02e7 / (4*np.pi) / rest_freq.to(u.Hz) / cosmo.H(cat['redshift']))  # in Lsun / Mpc^2 * Mpc^2/Sr * Mpc/Hz
+
+        cube_MJy_per_sr_per_Mpc, edges = np.histogramdd(sample = (np.asarray(cat['redshift']), cat['ra'], cat['dec']), 
+                                                bins = (z_bins, ragrid_bins, decgrid_bins), weights = I)
+
+        #convert to the proper unit (Jy/sr/Mpc3)
+        transverse_res_list = []
+        radial_res_list = []
+        for i, z in enumerate(z_list):
+            dv_voxel = np.abs(ys[0,i]-ys[1,i]) * np.abs(xs[0,i]-xs[1,i]) * (cosmo.comoving_distance(z+dz/2) - cosmo.comoving_distance(z-dz/2)).value
+            cube_MJy_per_sr_per_Mpc[i,:,:] /= dv_voxel
+            radial_res_list.append((cosmo.comoving_distance(z+dz/2) - cosmo.comoving_distance(z-dz/2)).value)
+            transverse_res_list.append(np.sqrt(np.abs(ys[0,i]-ys[1,i]) * np.abs(xs[0,i]-xs[1,i])))
+        mean_transverse_res = np.asarray(transverse_res_list).mean()
+        mean_radial_res = np.asarray(radial_res_list).mean()
+
+        #save the cube!
+
         f= fits.PrimaryHDU(cube_MJy_per_sr_per_Mpc)
         hdu = fits.HDUList([f])
         hdr = hdu[0].header
