@@ -48,7 +48,6 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
     output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}.fits'
     if(not os.path.isfile(output_name)):
 
-
         cat = cat.loc[np.abs(cat['redshift']-z_center) <= Delta_z/2]
 
         nu_obs = rest_freq / (1+z_center)
@@ -164,9 +163,12 @@ if __name__ == "__main__":
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
         
+        if(tile_sizeDEC<1.5): continue
         bar = Bar('Processing', max=len(files))
 
         for l, file in enumerate(files):
+
+            
 
             cat = Table.read(TIM_params["output_path"]+file)
             cat = cat.to_pandas()
