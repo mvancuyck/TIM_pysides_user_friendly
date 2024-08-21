@@ -79,6 +79,7 @@ def give_map_spatial_freq_one_axis(res, ny):
 
 def make_bintab(k, delta_k_min, dkk = 0, delta_k_max=0, ):
 
+    k = np.asarray(k)
     kmax      = k.max()
     kmin      = k.min()
     if(dkk == 0): 
