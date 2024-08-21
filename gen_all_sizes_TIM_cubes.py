@@ -66,9 +66,8 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
     ys = Dc_center * ( ragrid[:, np.newaxis]  - ra_center)  * (np.pi/180) * np.cos(np.pi/180*ragrid[:, np.newaxis])
     xs = Dc_center * ( decgrid[:, np.newaxis] - dec_center) * (np.pi/180)
 
-    embed()
     L = cat[f'I{line}'] * 1.04e-3 * cat['Dlum']**2 * rest_freq/(1+cat['redshift'])
-    I = (L * (cst.c*1e-3) * 4.02e7 / (4*np.pi) / rest_freq.to(u.Hz) / cosmo.H(cat['redshift'])).value   # in Lsun / Mpc^2 * Mpc^2/Sr * Mpc/Hz
+    I = (L * (cst.c*1e-3) * 4.02e7 / (4*np.pi) / rest_freq.to(u.Hz) / cosmo.H(cat['redshift']))  # in Lsun / Mpc^2 * Mpc^2/Sr * Mpc/Hz
 
     cube_MJy_per_sr_per_Mpc, edges = np.histogramdd(sample = (np.asarray(cat['redshift']), cat['ra'], cat['dec']), 
                                             bins = (z_bins, ragrid_bins, decgrid_bins), weights = I)
