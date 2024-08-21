@@ -69,12 +69,12 @@ def p_of_k_for_comoving_cube(cat_name,line,rest_freq, z_center, Delta_z,  fileca
         k_bintab_transv, k_binwidth_transv = make_bintab(k_transv_freq.value, 0.3, delta_k_over_k) 
         k_bintab_z, k_binwidth_z           = make_bintab(k_z_freq.value, 0.01, delta_k_over_k) 
 
-        k_out_z, e = np.histogram(k_z_freq_3d, bins = k_bintab_z.value, weights = k_z_freq_3d)
-        histo_z, e = np.histogram(k_z_freq_3d, bins = k_bintab_z.value)
+        k_out_z, e = np.histogram(k_z_freq_3d, bins = k_bintab_z, weights = k_z_freq_3d)
+        histo_z, e = np.histogram(k_z_freq_3d, bins = k_bintab_z)
         k_out_z /= histo_z
 
-        k_out_transv, e = np.histogram(k_transv_freq_3d, bins = k_bintab_transv.value, weights = k_transv_freq_3d)
-        histo_transv, e = np.histogram(k_transv_freq_3d, bins = k_bintab_transv.value)
+        k_out_transv, e = np.histogram(k_transv_freq_3d, bins = k_bintab_transv, weights = k_transv_freq_3d)
+        histo_transv, e = np.histogram(k_transv_freq_3d, bins = k_bintab_transv)
         k_out_transv /= histo_transv
 
         k_out_sphere, e = np.histogram(k_sphere_freq, bins = k_bintab_sphere, weights = k_sphere_freq)
@@ -86,7 +86,7 @@ def p_of_k_for_comoving_cube(cat_name,line,rest_freq, z_center, Delta_z,  fileca
         xpk_out_sphere /= histo_sphere
 
         histo, edges = np.histogramdd((k_z_freq_3d.ravel(), k_transv_freq_3d.ravel()), 
-                                        bins=(k_bintab_z.value, k_bintab_transv.value))
+                                        bins=(k_bintab_z, k_bintab_transv))
 
         # Compute the weighted sums for k_z and k_transv
         k_out_z = np.histogramdd((k_z_freq_3d.ravel(), k_transv_freq_3d.ravel()), 
