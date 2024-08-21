@@ -11,6 +11,8 @@ from matplotlib.colors import LogNorm
 import matplotlib.patches as patches
 import re
 import glob
+from progress.bar import Bar
+
 
 freq_CII = 1900.53690000 * u.GHz
 
@@ -162,6 +164,8 @@ if __name__ == "__main__":
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
         
+        bar = Bar('Processing', max=len(files))
+
         for l, file in enumerate(files):
 
             cat = Table.read(TIM_params["output_path"]+file)
@@ -171,3 +175,6 @@ if __name__ == "__main__":
 
                 gen_comoving_cube(cat, file[:-5], TIM_params, 'CII_de_Looze', freq_CII,
                                   z_center=z_center, Delta_z=dz)
+
+            bar.next()
+        bar.finish
