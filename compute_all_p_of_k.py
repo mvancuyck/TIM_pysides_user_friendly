@@ -65,9 +65,9 @@ def p_of_k_for_comoving_cube(cat_name,line,rest_freq, z_center, Delta_z,  fileca
         delta_k_over_k = TIM_params['dkk']
 
         #k_nyquist = 1 / 2 / res.to(u.rad)  #rad**-1
-        k_bintab_sphere, k_binwidth_sphere = make_bintab((k_sphere_freq[k_sphere_freq.value>0].min().value,k_sphere_freq.max().value), 0.01, delta_k_over_k) 
-        k_bintab_transv, k_binwidth_transv = make_bintab((k_transv_freq[k_transv_freq.value>0].min().value,k_transv_freq.max().value), 0.3, delta_k_over_k) 
-        k_bintab_z, k_binwidth_z           = make_bintab((k_z_freq[k_z_freq.value>0].min().value,k_z_freq.max().value), 0.01/ u.Mpc, delta_k_over_k) 
+        k_bintab_sphere, k_binwidth_sphere = make_bintab(k_sphere_freq.value, 0.01, delta_k_over_k) 
+        k_bintab_transv, k_binwidth_transv = make_bintab(k_transv_freq.value, 0.3, delta_k_over_k) 
+        k_bintab_z, k_binwidth_z           = make_bintab(k_z_freq.value, 0.01, delta_k_over_k) 
 
         k_out_z, e = np.histogram(k_z_freq_3d, bins = k_bintab_z.value, weights = k_z_freq_3d)
         histo_z, e = np.histogram(k_z_freq_3d, bins = k_bintab_z.value)
