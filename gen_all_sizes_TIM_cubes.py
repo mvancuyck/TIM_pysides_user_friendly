@@ -85,6 +85,7 @@ def gen_comoving_cube(cat, cat_name, pars, line, rest_freq, z_center=6, Delta_z=
 
     #save the cube!
     output_name = f'{pars["output_path"]}/{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}.fits'
+
     if(not os.path.isfile(output_name)):
         f= fits.PrimaryHDU(cube_MJy_per_sr_per_Mpc)
         hdu = fits.HDUList([f])
@@ -155,6 +156,7 @@ if __name__ == "__main__":
 
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
         print(tile_sizeRA, tile_sizeDEC)
+        if(tile_sizeRA<1): continue
         
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
