@@ -48,7 +48,7 @@ def my_p2(data_map, res, k_bins, unitpk, unitk, map2 = None):
 
 def give_map_spatial_freq(res, ny, nx):
     
-    res = res.to(u.rad)
+    #res = res.to(u.rad)
     Ys, Xs = np.unravel_index(np.arange(nx*ny),(ny,nx))
     N = np.zeros((ny, nx))
     M = np.zeros((ny, nx))
@@ -66,6 +66,7 @@ def give_map_spatial_freq(res, ny, nx):
     return k_map
 
 def give_map_spatial_freq_one_axis(res, ny):
+
     Ys = np.arange(ny)
     M = np.zeros(ny)
     for ys, in zip(Ys):
@@ -77,11 +78,12 @@ def give_map_spatial_freq_one_axis(res, ny):
     return k_map
 
 def make_bintab(k, delta_k_min, dkk = 0, delta_k_max=0, ):
-    kmax      = k[1].value
-    kmin      = k[0].value
+
+    kmax      = k.max()
+    kmin      = k.min()
     if(dkk == 0): 
-        bintab = np.arange(kmin, kmax, delta_k_min.value )
-        bin_width = np.ones(len(bintab)-1) * delta_k_min.value
+        bintab = np.arange(kmin, kmax, delta_k_min )
+        bin_width = np.ones(len(bintab)-1) * delta_k_min
     else:
         k1 = kmin
         delta_k = 0 
@@ -89,9 +91,9 @@ def make_bintab(k, delta_k_min, dkk = 0, delta_k_max=0, ):
         bintab.append(kmin)
         bin_width = []
         while(k1 + delta_k <= kmax):
-            delta_k = np.minimum( np.maximum(k1*dkk, delta_k_min.value) , (kmax - k1) )
+            delta_k = np.minimum( np.maximum(k1*dkk, delta_k_min) , (kmax - k1) )
             if(delta_k_max != 0): 
-                delta_k = np.minimum(delta_k, delta_k_max.value)
+                delta_k = np.minimum(delta_k, delta_k_max)
             k1 = k1 +  delta_k
             bintab.append(k1)
             bin_width.append(delta_k)
@@ -100,7 +102,7 @@ def make_bintab(k, delta_k_min, dkk = 0, delta_k_max=0, ):
         bintab[-1]    = kmax
         bin_width[-1] = bintab[-1]-bintab[-2]
     #bintab = np.insert(bintab,0,0)
-    return bintab * k[0].unit , bin_width * k[0].unit
+    return bintab  , bin_width 
     
 def set_k_infos(ny, nx, res, delta_k_over_k = 0):
 
