@@ -13,7 +13,6 @@ from scipy.interpolate import interp2d, interp1d
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib
 from astropy import wcs
-import powspec
 from astropy.table import Table
 import os
 import vaex as vx
