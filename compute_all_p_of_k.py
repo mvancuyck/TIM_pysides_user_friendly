@@ -226,12 +226,11 @@ def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT
 
     #Naive Non-Uniform power spectrum
     #I need to investigate more references.
-    if(toemb): embed()
 
     #Load the angular spectral cube and its header 
     hdu = fits.open(cubefile)
     hdr = hdu[0].header
-    angular_cube = (hdu[0].data * u.MJy/u.sr).to(u.Jy/u.sr) #u.Unit(hdr['BUNIT'])
+    angular_cube = hdu[0].data * u.Unit(hdr['BUNIT'])
     w = wcs.WCS(hdr)   
     
     #Set the redshift axis  append=x[-1]
@@ -245,34 +244,35 @@ def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT
     freq_list = freq_list[fmin:fmax+2]
     angular_cube = angular_cube[fmin:fmax+1]
 
-    redshift_list = (rest_freq.to(hdr['CUNIT3']) / freq_list - 1 ).value    
-    #xpixlist = np.linspace(0,hdr['NAXIS2'],hdr['NAXIS2']+1)
-    #ypixlist = np.linspace(0,hdr['NAXIS1'],hdr['NAXIS1']+1)
+    redshift_list = (rest_freq.to(hdr['CUNIT3']) / freq_list - 1 ).value  
+    Dc_center = cosmo.comoving_distance(redshift_list)
+  
     Nmax = np.max((hdr['NAXIS2'],hdr['NAXIS1']))
 
     xpixlist = np.linspace(0,Nmax,Nmax+1)
     ypixlist = np.linspace(0,Nmax,Nmax+1)
-    ra ,dec = w.celestial.wcs_pix2world( ypixlist, xpixlist, 0)*u.deg
     xpixgrid = list(np.linspace(-0.5,hdr['NAXIS2']+0.5,hdr['NAXIS2']+2))
     ypixgrid = list(np.linspace(-0.5,hdr['NAXIS1']+0.5,hdr['NAXIS1']+2))
+
+    ra ,dec = w.celestial.wcs_pix2world( ypixlist, xpixlist, 0)*u.deg
     ragrid , decgrid = w.celestial.wcs_pix2world( ypixlist, xpixlist , 0) *u.deg
-    ra_center = np.mean(ragrid)
-    dec_center = np.mean(decgrid)
-    delta_ra = np.max(ragrid) - np.min(ragrid)
-    delta_dec = np.max(decgrid) - np.min(decgrid)
+    ra_center = np.mean(ra)
+    dec_center = np.mean(dec)
+    delta_ra = np.max(ra) - np.min(ra)
+    delta_dec = np.max(dec) - np.min(dec)
     #all the coordinates will be in comoving units
-    Dc_center = cosmo.comoving_distance(redshift_list)
 
     #compute the coordinates in the cube
     y_Mpc = Dc_center[:,np.newaxis] * (( ra[ np.newaxis,:]  - ra_center)  * (np.pi/180) * np.cos(np.pi/180*ragrid[ np.newaxis,:])).value
     x_Mpc = Dc_center[:,np.newaxis] * (( dec[ np.newaxis,:] - dec_center) * (np.pi/180)).value
+
+    if(toemb): embed()
 
     dept_vox = np.abs(np.diff(Dc_center))
     area_vox = np.zeros(( int(fmax-fmin+1), Nmax , Nmax ))  
     area_vox[:,:,:] = np.diff(y_Mpc[:1,:], axis=1)[:,:,np.newaxis] * np.diff(x_Mpc[:1,:], axis=1)[:,np.newaxis,:]
     v_vox = dept_vox[:,np.newaxis, np.newaxis] * area_vox[:, :,:]   
     angular_cube /= v_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']]
-
 
     res_perp = (area_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']].mean())**(1/2)
     res_rad  =  dept_vox.mean()
