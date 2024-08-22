@@ -73,8 +73,6 @@ def p_of_k_for_comoving_cube(cat_name,line,rest_freq, z_center, Delta_z,  fileca
         histo_z, e = np.histogram(k_z_freq_3d, bins = k_bintab_z)
         k_out_z /= histo_z
 
-
-
         k_out_transv, e = np.histogram(k_transv_freq_3d, bins = k_bintab_transv, weights = k_transv_freq_3d)
         histo_transv, e = np.histogram(k_transv_freq_3d, bins = k_bintab_transv)
         k_out_transv /= histo_transv
@@ -301,8 +299,8 @@ def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT
     p_of_k, k_edges = np.histogram(k.value, bins=k_bins, weights=pow_sqr)
     p_of_k /= norm_k
 
-    plt.loglog(k_adress, p_of_k)
-    plt.show()
+    #plt.loglog(k_adress, p_of_k)
+    #plt.show()
 
     return k_adress, p_of_k
 
