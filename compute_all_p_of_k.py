@@ -222,10 +222,11 @@ def p_of_k_for_comoving_cube(cat_name,line,rest_freq, z_center, Delta_z,  fileca
     '''
 
 def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile99_0.2deg_1deg_CII_de_Looze_nobeam_MJy_sr.fits',
-                                        rest_freq = 1900.53690000 * u.GHz, dkk=0.1):
+                                        rest_freq = 1900.53690000 * u.GHz, dkk=0.1, toemb=False):
 
     #Naive Non-Uniform power spectrum
     #I need to investigate more references.
+    if(toemb): embed()
 
     #Load the angular spectral cube and its header 
     hdu = fits.open(cubefile)
@@ -324,7 +325,8 @@ if __name__ == "__main__":
 
         for l, file in enumerate(files):
 
-            if(l==6): embed()
+            if(l==6): toemb=True
+            else: toemb=False
             
             dictl = {}
 
@@ -332,7 +334,7 @@ if __name__ == "__main__":
 
                 dictl[f'pk_3D_z{z_center}_CII_de_Looze'] = p_of_k_for_comoving_cube(file[:-5],'CII_de_Looze',freq_CII, z_center, dz, file, TIM_params)
 
-                k, pk = naive_NU_DF_PK_for_angular_spectral_cube(z_center, dz, cubefile=f'OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_CII_de_Looze_nobeam_MJy_sr.fits',)
+                k, pk = naive_NU_DF_PK_for_angular_spectral_cube(z_center, dz, cubefile=f'OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_CII_de_Looze_nobeam_MJy_sr.fits',toemb=toemb)
                 dictl[f'pk_3D_non-uniform_z{z_center}_CII_de_Looze'] = pk
                 dictl[f'k_3D_non-uniform_z{z_center}_CII_de_Looze'] = k
 
