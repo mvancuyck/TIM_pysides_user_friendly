@@ -222,7 +222,7 @@ def p_of_k_for_comoving_cube(cat_name,line,rest_freq, z_center, Delta_z,  fileca
     '''
 
 def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile99_0.2deg_1deg_CII_de_Looze_nobeam_MJy_sr.fits',
-                                        rest_freq = 1900.53690000 * u.GHz, dkk=0.1, toemb=False):
+                                        rest_freq = 1900.53690000 * u.GHz, dkk=0.4, toemb=False):
 
     #Naive Non-Uniform power spectrum
     #I need to investigate more references.
@@ -232,6 +232,7 @@ def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT
     hdr = hdu[0].header
     angular_cube = hdu[0].data * u.Unit(hdr['BUNIT'])
     w = wcs.WCS(hdr)   
+    hdr['CRVAL1'] = hdr['CRVAL2']
     
     #Set the redshift axis  append=x[-1]
     freqs = np.linspace(0,hdr['NAXIS3'],hdr['NAXIS3']+1)
@@ -249,28 +250,27 @@ def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT
   
     Nmax = np.max((hdr['NAXIS2'],hdr['NAXIS1']))
 
-    xpixlist = np.linspace(0,Nmax,Nmax+1)
-    ypixlist = np.linspace(0,Nmax,Nmax+1)
-    xpixgrid = list(np.linspace(-0.5,hdr['NAXIS2']+0.5,hdr['NAXIS2']+2))
-    ypixgrid = list(np.linspace(-0.5,hdr['NAXIS1']+0.5,hdr['NAXIS1']+2))
+    #xpixlist = np.linspace(0,Nmax,Nmax+1)
+    #ypixlist = np.linspace(0,Nmax,Nmax+1)
+    #ra, dec = w.celestial.wcs_pix2world(ypixlist, xpixlist, 0)*u.deg
 
-    ra ,dec = w.celestial.wcs_pix2world( ypixlist, xpixlist, 0)*u.deg
-    ragrid , decgrid = w.celestial.wcs_pix2world( ypixlist, xpixlist , 0) *u.deg
+    ra = np.arange(hdr['CRVAL1'], hdr['CRVAL1']+(Nmax+1)*hdr['CDELT1'], hdr['CDELT1'])[:(Nmax+1)]*u.Unit(hdr['CUNIT1'])
+    dec = np.arange(hdr['CRVAL2'], hdr['CRVAL2']+(Nmax+1)*hdr['CDELT2'], hdr['CDELT2'])[:(Nmax+1)]*u.Unit(hdr['CUNIT2'])
+    ra_grid, dec_grid = np.meshgrid(ra, dec)
+
     ra_center = np.mean(ra)
     dec_center = np.mean(dec)
     delta_ra = np.max(ra) - np.min(ra)
     delta_dec = np.max(dec) - np.min(dec)
-    #all the coordinates will be in comoving units
 
     #compute the coordinates in the cube
-    y_Mpc = Dc_center[:,np.newaxis] * (( ra[ np.newaxis,:]  - ra_center)  * (np.pi/180) * np.cos(np.pi/180*ragrid[ np.newaxis,:])).value
+    y_Mpc = Dc_center[:,np.newaxis] * (( ra[ np.newaxis,:]  - ra_center)  * (np.pi/180) * np.cos(np.pi/180*ra[ np.newaxis,:])).value
     x_Mpc = Dc_center[:,np.newaxis] * (( dec[ np.newaxis,:] - dec_center) * (np.pi/180)).value
 
-    if(toemb): embed()
-
     dept_vox = np.abs(np.diff(Dc_center))
+
     area_vox = np.zeros(( int(fmax-fmin+1), Nmax , Nmax ))  
-    area_vox[:,:,:] = np.diff(y_Mpc[:1,:], axis=1)[:,:,np.newaxis] * np.diff(x_Mpc[:1,:], axis=1)[:,np.newaxis,:]
+    area_vox[:,:,:] = np.abs(np.diff(y_Mpc[:1,:], axis=1)[:,:,np.newaxis]) * np.abs(np.diff(x_Mpc[:1,:], axis=1)[:,np.newaxis,:])
     v_vox = dept_vox[:,np.newaxis, np.newaxis] * area_vox[:, :,:]   
     angular_cube /= v_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']]
 
@@ -302,8 +302,9 @@ def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT
 
     #plt.loglog(k_adress, p_of_k)
     #plt.show()
+    if(toemb): embed()
 
-    return k_adress, p_of_k
+    return k_adress, p_of_k.to(u.Jy**2/u.sr**2/u.Mpc)
 
 if __name__ == "__main__":
 
@@ -323,21 +324,21 @@ if __name__ == "__main__":
         files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
         dict_fieldsize = {}
 
-        for l, file in enumerate(files):
-
+        #for l, file in enumerate(files):
+        for l, file in enumerate(range(8)):
             if(l==6): toemb=True
-            else: toemb=False
-            
+            else: 
+                toemb=False
+                continue
             dictl = {}
 
             for z_center, dz in zip(TIM_params['z_centers'], TIM_params['dz']): 
 
-                dictl[f'pk_3D_z{z_center}_CII_de_Looze'] = p_of_k_for_comoving_cube(file[:-5],'CII_de_Looze',freq_CII, z_center, dz, file, TIM_params)
+                #dictl[f'pk_3D_z{z_center}_CII_de_Looze'] = p_of_k_for_comoving_cube(file[:-5],'CII_de_Looze',freq_CII, z_center, dz, file, TIM_params)
 
                 k, pk = naive_NU_DF_PK_for_angular_spectral_cube(z_center, dz, cubefile=f'OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_CII_de_Looze_nobeam_MJy_sr.fits',toemb=toemb)
                 dictl[f'pk_3D_non-uniform_z{z_center}_CII_de_Looze'] = pk
                 dictl[f'k_3D_non-uniform_z{z_center}_CII_de_Looze'] = k
-
 
             dict_fieldsize[f'{l}'] = dictl
 
