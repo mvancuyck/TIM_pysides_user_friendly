@@ -311,13 +311,6 @@ if __name__ == "__main__":
     params = load_params('PAR_FILES/SIDES_from_original_with_fir_lines.par')
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
 
-    #With SIDES Bolshoi, for rapid tests. 
-    '''
-    dirpath="/home/mvancuyck/"
-    cat = Table.read(dirpath+'pySIDES_from_original.fits')
-    cat = cat.to_pandas()
-    simu='pySIDES_from_bolshoi'; fs=2
-    '''
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
 
         # List files matching the pattern
