@@ -50,7 +50,6 @@ if __name__ == "__main__":
 
     params = load_params('PAR_FILES/SIDES_from_original_with_fir_lines.par')
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
-
     simu, cat, dirpath, fs = load_cat()
 
     #With SIDES Bolshoi, for rapid tests. 
