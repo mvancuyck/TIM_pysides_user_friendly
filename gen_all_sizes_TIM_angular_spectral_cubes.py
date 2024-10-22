@@ -57,6 +57,6 @@ if __name__ == "__main__":
             cat = cat.to_pandas()
     
             params_cube = load_params("PAR_FILES/Uchuu_cubes_for_TIM.par")
-            params_cube['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixelsize']}arcsec_dnu{TIM_params['freq_resol']/1e9}GHz"
+            params_cube['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']}arcsec_dnu{TIM_params['freq_resol']/1e9}GHz"
 
             make_cube(cat, params_sides, params_cube)
