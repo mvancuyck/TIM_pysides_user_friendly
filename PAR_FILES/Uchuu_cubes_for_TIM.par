@@ -7,16 +7,16 @@ Nmax=100
 
 #####Cubes making parameters#####
 
-sides_cat_path = "/data/SIDES/PYSIDES_UCHUU_OUTPUTS/vpeak_complete/"
+sides_cat_path = "/net/CONCERTO/home/mvancuyck/full_mmCOLIM/outputs_cubes/"
 
-pixel_size = 30 #arcsec
+pixel_size = 20 #arcsec
 
-tile_sizes = [(0.45, 0.45),(0.2, 1), (0.2, 1.25), (0.2, 1.5), (1,1), (1.5, 1.5)]
+tile_sizes = [(1,1), (0.2,1), (0.45, 0.45),] #120
 #Instrument's parameters
 
 freq_min = 715e9 #Hz
 freq_max = 1250e9 #Hz
-freq_resol = 2e9 #Hz
+freq_resol = 4e9 #Hz
 
 Mstar_lim= 1e10
 
