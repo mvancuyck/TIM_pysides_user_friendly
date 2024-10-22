@@ -7,7 +7,7 @@ Nmax=100
 
 #####Cubes making parameters#####
 
-sides_cat_path = "/net/CONCERTO/home/mvancuyck/full_mmCOLIM/outputs_cubes/"
+sides_cat_path  = "/net/CONCERTO/home/mvancuyck/full_mmCOLIM/outputs_cubes/"
 
 pixel_size = 20 #arcsec
 
@@ -46,9 +46,9 @@ gen_cube_CII_Lagache  = False
 #Choose the cubes to save
 save_each_transition  = True	#save the cubes for each tranistion (CO10, CO21, [CI]10, [CI]21...)
 save_each_line 	= True 	#save the cubes for each line (CO, [CI], [CII])
-save_continuum_only   = False	#save the cube(s) with only continuum
+save_continuum_only   = True	#save the cube(s) with only continuum
 save_all_lines	      = True	#save the cube(s) with all the lines
-save_full 	      = False	#save the full cube(s) with everything
+save_full 	      = True	#save the full cube(s) with everything
 save_galaxies = True
 
 ##############################
