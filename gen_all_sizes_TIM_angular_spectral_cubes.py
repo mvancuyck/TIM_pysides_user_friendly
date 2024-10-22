@@ -49,14 +49,14 @@ if __name__ == "__main__":
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
         
         # List files matching the pattern
-        files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
+        files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
         
         for l, file in enumerate(files):
             
-            cat = Table.read(TIM_params["output_path"]+file)
+            cat = Table.read(TIM_params["sides_cat_path"]+file)
             cat = cat.to_pandas()
     
             params_cube = load_params("PAR_FILES/Uchuu_cubes_for_TIM.par")
-            params_cube['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg"
+            params_cube['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixelsize']}arcsec_dnu{TIM_params['freq_resol']/1e9}GHz"
 
-            make_cube(cat ,params_sides, params_cube)
+            make_cube(cat, params_sides, params_cube)
