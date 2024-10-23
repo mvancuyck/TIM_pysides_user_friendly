@@ -161,9 +161,8 @@ if __name__ == "__main__":
         print(tile_sizeRA, tile_sizeDEC)
         
         # List files matching the pattern
-        files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
+        files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
         
-        if(tile_sizeDEC<1.5): continue
         bar = Bar('Processing', max=len(files))
 
         for l, file in enumerate(files):
