@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
         list_fract = np.zeros(len(files))
 
-        dict_name = f'galaxy_fraction_below_z.3_above5mJy_at_150GHz_in_{tile_sizeRA}degx{tile_sizeDEC}deg.p'
+        dict_name = f'dict_dir/galaxy_fraction_below_z.3_above5mJy_at_150GHz_in_{tile_sizeRA}degx{tile_sizeDEC}deg.p'
         if(not os.path.isfile(dict_name)):
 
             dict = {}
@@ -69,7 +69,7 @@ if __name__ == "__main__":
                 cat = cat.to_pandas()
                 cat = cat.loc[cat['redshift']<=0.3]
 
-                channels = (150e9,)
+                channels = (150e9,) #GHz
                 treshold = 5e-3 #Jy 
                 lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels)* u.Hz)  ).to(u.um)
                 SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))    
@@ -80,7 +80,7 @@ if __name__ == "__main__":
                 
                 dict[f'{l}']['Snu_arr'] = Snu_arr
                 dict[f'{l}']['len_cat_z<=0.3'] = len(cat)
-                a = np.where(Snu_arr[:,0].value>treshold)
+                a = np.where(Snu_arr[:,0].value>=treshold)
                 dict[f'{l}']['nb_sources_above_treshold'] = len(a[0])
 
                 list_fract[l] = len(a[0]) / len(cat)
@@ -93,3 +93,9 @@ if __name__ == "__main__":
         
         else: dict =  pickle.load( open(dict_name, 'rb'))
 
+
+    for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
+
+        dict_name = f'dict_dir/galaxy_fraction_below_z.3_above5mJy_at_150GHz_in_{tile_sizeRA}degx{tile_sizeDEC}deg.p'
+        dict =  pickle.load( open(dict_name, 'rb'))
+        print (f'The fraction in {tile_sizeRA}deg X {tile_sizeDEC}deg is: f={dict['mean_frac']}+-{dict['std_frac']}')
