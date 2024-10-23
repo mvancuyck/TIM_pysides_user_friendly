@@ -26,7 +26,7 @@ line_list.append('CI21'); line_list.append('CII_de_Looze')
 
 def p_of_k_for_comoving_cube(cat_name,line,rest_freq, z_center, Delta_z,  filecat, pars, recompute=False):
 
-    path = pars['output_path']
+    path = pars['sides_cat_path']
     dict_pks_name = f'dict_dir/{cat_name}_cube_3D_z{z_center}_Jy_sr_{line}_pk3d.p'
     dico_exists = os.path.isfile(dict_pks_name)
     key_exists = False
