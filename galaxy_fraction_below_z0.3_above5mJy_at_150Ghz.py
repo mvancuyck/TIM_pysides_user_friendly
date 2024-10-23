@@ -54,6 +54,7 @@ if __name__ == "__main__":
         for l, file in enumerate(files):
             
             cat = Table.read(TIM_params["sides_cat_path"]+file)
+            cat = cat.loc[cat['redshift']<=0.3]
             cat = cat.to_pandas()
     
             channels = (150e9,)
