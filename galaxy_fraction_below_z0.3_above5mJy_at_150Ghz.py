@@ -75,8 +75,8 @@ if __name__ == "__main__":
                 SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))    
                 Snu_arr = gen_Snu_arr(lambda_list.value, 
                                     SED_dict, cat["redshift"],
-                                    cat["LIR"], cat["Umean"], 
-                                    cat["Dlum"], cat["issb"])
+                                    cat["LIR"]*cat['mu'], cat["Umean"], 
+                                    cat["Dlum"], cat["ISSB"])
                 
                 dict[f'{l}']['Snu_arr'] = Snu_arr
                 dict[f'{l}']['len_cat_z<=0.3'] = len(cat)
@@ -92,7 +92,6 @@ if __name__ == "__main__":
             pickle.dump(dict, open(dict_name, 'wb'))
         
         else: dict =  pickle.load( open(dict_name, 'rb'))
-
 
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
 
