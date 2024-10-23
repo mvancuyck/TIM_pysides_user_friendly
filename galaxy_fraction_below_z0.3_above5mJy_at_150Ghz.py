@@ -98,4 +98,4 @@ if __name__ == "__main__":
 
         dict_name = f'dict_dir/galaxy_fraction_below_z.3_above5mJy_at_150GHz_in_{tile_sizeRA}degx{tile_sizeDEC}deg.p'
         dict =  pickle.load( open(dict_name, 'rb'))
-        print (f'The fraction in {tile_sizeRA}deg X {tile_sizeDEC}deg is: f={dict['mean_frac']}+-{dict['std_frac']}')
+        print (f'The fraction in {tile_sizeRA}deg X {tile_sizeDEC}deg is: f={dict["mean_frac"]}+-{dict["std_frac"]}')
