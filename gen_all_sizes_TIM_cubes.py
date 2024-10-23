@@ -168,8 +168,6 @@ if __name__ == "__main__":
 
         for l, file in enumerate(files):
 
-            
-
             cat = Table.read(TIM_params["output_path"]+file)
             cat = cat.to_pandas()
     
