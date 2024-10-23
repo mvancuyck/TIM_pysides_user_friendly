@@ -56,10 +56,8 @@ if __name__ == "__main__":
             cat = Table.read(TIM_params["sides_cat_path"]+file)
             cat = cat.to_pandas()
     
-            nu0 = 150 #GHz
-            dnu = 1   #GHz
-            channels = (nu0-dnu/2,nu0+dnu/2)
-            lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels)*1e9 * u.Hz)  ).to(u.um)
+            channels = (150e9,)
+            lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels)* u.Hz)  ).to(u.um)
             SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))    
             print("Generate continuum fluxes...")
             Snu_arr = gen_Snu_arr(lambda_list.value, 
