@@ -11,7 +11,7 @@ sides_cat_path  = "/net/CONCERTO/home/mvancuyck/full_mmCOLIM/outputs_cubes/"
 
 pixel_size = 20 #arcsec
 
-tile_sizes = [(1,1), (0.2,1), (0.45, 0.45),] #120
+tile_sizes = [(1,1), (0.2,1), ] #120 (0.45, 0.45)
 #Instrument's parameters
 
 freq_min = 715e9 #Hz
@@ -24,8 +24,8 @@ telescop_diameter = 1.9 #m
 
 #3D cubes parameters
 
-z_centers = (0.63,0.88,1.16,1.48)
-dz        = (0.22,0.26,0.3,0.34)
+z_centers = (0.64,0.90,1.18,1.5)
+dz        = (0.22,0.24,0.28,0.3)
 
 #####Cubes output parameters#####
 
