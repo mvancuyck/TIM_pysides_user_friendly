@@ -310,7 +310,7 @@ if __name__ == "__main__":
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
 
         # List files matching the pattern
-        files = sorted_files_by_n(TIM_params["output_path"], ((tile_sizeRA, tile_sizeDEC),))
+        files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
         dict_fieldsize = {}
 
         for l, file in enumerate(files):
