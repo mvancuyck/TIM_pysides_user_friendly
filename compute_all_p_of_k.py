@@ -17,10 +17,6 @@ from gen_all_sizes_TIM_cubes import sorted_files_by_n
 import glob
 import sys
 
-def list_files(pattern):
-    files = glob.glob(pattern)
-    return files
-
 freq_CII = 1900.53690000 * u.GHz
 freq_CI21 = 809.34 * u.GHz
 rest_freq_list = [115.27120180  *u.GHz* J_up for J_up in range(7, 9)]
