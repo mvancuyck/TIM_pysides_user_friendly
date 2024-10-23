@@ -327,8 +327,8 @@ if __name__ == "__main__":
                 dictl[f'pk_3D_z{z_center}_CII_de_Looze'] = p_of_k_for_comoving_cube(file[:-5],'CII_de_Looze',freq_CII, z_center, dz, file, TIM_params)
 
                 #k, pk = naive_NU_DF_PK_for_angular_spectral_cube(z_center, dz, cubefile=f'OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_CII_de_Looze_nobeam_MJy_sr.fits',toemb=toemb)
-                dictl[f'pk_3D_non-uniform_z{z_center}_CII_de_Looze'] = pk
-                dictl[f'k_3D_non-uniform_z{z_center}_CII_de_Looze'] = k
+                #ddictl[f'pk_3D_non-uniform_z{z_center}_CII_de_Looze'] = pk
+                #dictl[f'k_3D_non-uniform_z{z_center}_CII_de_Looze'] = k
 
             dict_fieldsize[f'{l}'] = dictl
 
