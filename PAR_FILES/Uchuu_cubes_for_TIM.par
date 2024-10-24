@@ -11,7 +11,7 @@ sides_cat_path  = "/net/CONCERTO/home/mvancuyck/full_mmCOLIM/outputs_cubes/"
 
 pixel_size = 20 #arcsec
 
-tile_sizes = [(1,1), (0.2,1), (0.45, 0.45), (1.225,1.225)  ] #120 
+tile_sizes = [(1,1), (0.2,1), (0.45, 0.45), (1.225,1.225), (1.414, 1.414)   ] #120 
 #Instrument's parameters
 
 freq_min = 715e9 #Hz
