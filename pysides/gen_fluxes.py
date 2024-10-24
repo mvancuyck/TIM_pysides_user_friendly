@@ -116,7 +116,7 @@ def add_fluxes(cat, params, new_lambda):
     SED_dict = pickle.load(open(params['SED_file'], "rb"))
 
     print("Add new monochromatic fluxes...")
-    Snu_arr = gen_Snu_arr(new_lambda, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"]) 
+    Snu_arr = gen_Snu_arr(new_lambda, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["ISSB"]) 
 
     for i in range(0,len(new_lambda)): #option for cubes: pas d'assigne else gensnuarr sum=true
         kwargs = {'S{:d}'.format(new_lambda[i]) : Snu_arr[:,i].value}
