@@ -58,7 +58,9 @@ if __name__ == "__main__":
             cat = cat.to_pandas()
             
             TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']}arcsec_dnu{TIM_params['freq_resol']/1e9}GHz"
-            make_cube(cat, params_sides, TIM_params)
+            file = TIM_params['output_path'] +  TIM_params['run_name'] + 'full_de_Looze_smoothed_MJy_sr.fits' 
+            if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
 
             CONCERTO_params['run_name'] = f"pySIDES_from_uchuu_CONCERTO_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{CONCERTO_params['pixel_size']}arcsec_dnu{CONCERTO_params['freq_resol']/1e9}GHz"
-            make_cube(cat, params_sides, CONCERTO_params)
+            file = CONCERTO_params['output_path'] +  CONCERTO_params['run_name'] + 'full_de_Looze_smoothed_MJy_sr.fits' 
+            if(not os.path.isfile(file)): make_cube(cat, params_sides, CONCERTO_params)
