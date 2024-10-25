@@ -46,7 +46,7 @@ if __name__ == "__main__":
     params_sides = load_params('PAR_FILES/SIDES_from_original_with_fir_lines.par')
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
     CONCERTO_params = load_params('PAR_FILES/Uchuu_cubes_for_CONCERTO.par')
-
+    
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_sizes']: 
         
         # List files matching the pattern
@@ -56,7 +56,6 @@ if __name__ == "__main__":
             
             cat = Table.read(TIM_params["sides_cat_path"]+file)
             cat = cat.to_pandas()
-            embed()
             
             TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']}arcsec_dnu{TIM_params['freq_resol']/1e9}GHz"
             make_cube(cat, params_sides, TIM_params)
