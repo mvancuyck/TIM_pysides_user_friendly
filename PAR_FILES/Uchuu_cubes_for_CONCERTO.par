@@ -15,11 +15,9 @@ tile_sizes = [(1,1), (0.2,1), (0.45, 0.45), (1.225,1.225), (1.414, 1.414)   ] #1
 #Instrument's parameters
 
 freq_min = 125e9 #Hz
-freq_max = 3100e9 #Hz
+freq_max = 310e9 #Hz
 freq_resol = 1e9 #Hz
-
 Mstar_lim= 1e10
-
 telescop_diameter = 12 #m
 
 #3D cubes parameters
