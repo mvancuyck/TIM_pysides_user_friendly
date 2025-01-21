@@ -1,6 +1,5 @@
 import sys
 import os
-from analysis_fcts.fcts import * 
 from pysides.make_cube import *
 from pysides.load_params import *
 import argparse
