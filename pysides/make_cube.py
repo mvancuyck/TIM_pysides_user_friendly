@@ -71,10 +71,10 @@ def set_wcs(cat,params):
     zmax = w.swapaxes(0, 2).sub(1).wcs_world2pix(params['freq_max'], 0)[0]
 
     # compute the dimensions of the three axes
-    shape = [np.ceil(zmax).astype(int), np.round(pos[0].max()).astype(int), np.round(pos[1].max()).astype(int) ]
+    shape = [np.ceil(zmax).astype(int), np.ceil(pos[0].max()), np.ceil(pos[1].max())]
     shape = [i//2*2+1 for i in shape] #force an odd number of pixels to generate better psf
-    x_edges = list(np.linspace(-0.5,shape[2]+0.5,shape[2]+1))
-    y_edges = list(np.linspace(-0.5,shape[1]+0.5,shape[1]+1))
+    x_edges = list(np.arange(-0.5, shape[1] + 0.5, 1)) 
+    y_edges = list(np.arange(-0.5, shape[0] + 0.5, 1)) 
     z_edges = list(np.arange(-0.5, shape[0] + 0.5, 1))
 
     wcs_dict = {}
@@ -238,7 +238,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict):
     lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um)
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
     print("Generate CONCERTO monochromatic fluxes...")
-    Snu_arr = gen_Snu_arr(lambda_list.value, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["ISSB"])
+    Snu_arr = gen_Snu_arr(lambda_list.value, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
 
     return Snu_arr
 
