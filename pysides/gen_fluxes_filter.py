@@ -45,7 +45,6 @@ def gen_fluxes_filter(cat, params):
         if first_grid == True or not (same_dU and same_dlog1plusz and same_Nlog1plusz and same_NUmean):
 
             print('Compute the index and weight to perform a fast interpolation... If it is ran several times, it means that the grids are not all the same, which is not optimal because indexes and weights for the interpolation have to be recomputed each time.')
- 
 
             #Compute the index for U
             
