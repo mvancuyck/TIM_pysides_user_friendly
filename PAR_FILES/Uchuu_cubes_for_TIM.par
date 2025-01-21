@@ -7,7 +7,7 @@ Nmax=100
 
 #####Cubes making parameters#####
 
-sides_cat_path  = "/net/CONCERTO/home/mvancuyck/full_mmCOLIM/outputs_cubes/"
+sides_cat_path  = "OUTPUT_TIM_CUBES_FROM_UCHUU/"
 
 pixel_size = 20 #arcsec
 
