@@ -51,16 +51,18 @@ if __name__ == "__main__":
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
         
-        for l, file in enumerate(files):
-            
-            #Load the catalog of the subfield
-            cat = Table.read(TIM_params["sides_cat_path"]+file)
-            cat = cat.to_pandas()
+        for l, cfile in enumerate(files):
             
             #Generate the TIM cubes with params precised in TIM_params.par
             TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
             file = TIM_params['output_path'] +  TIM_params['run_name'] + 'full_de_Looze_smoothed_MJy_sr.fits' 
-            if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
+            if(not os.path.isfile(file)):
+
+                #Load the catalog of the subfield
+                cat = Table.read(TIM_params["sides_cat_path"]+cfile)
+                cat = cat.to_pandas()
+            
+                make_cube(cat, params_sides, TIM_params)
 
             #Generate the CONCERTO cubes if wanted
             '''
@@ -74,11 +76,7 @@ if __name__ == "__main__":
 
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
-        for l, file in enumerate(files):
-
-            #Load the catalog of the subfield
-            cat = Table.read(TIM_params["sides_cat_path"]+file)
-            cat = cat.to_pandas()
+        for l, cfile in enumerate(files):
 
             for zrange in ('highz', 'lowz', 'midz'):
 
@@ -87,6 +85,12 @@ if __name__ == "__main__":
                 #Generate the TIM cubes with params precised in TIM_params.par
                 TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + 'all_lines_de_Looze_smoothed_MJy_sr.fits' 
-                if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
+
+                if(not os.path.isfile(file)): 
+
+                    #Load the catalog of the subfield
+                    cat = Table.read(TIM_params["sides_cat_path"]+cfile)
+                    cat = cat.to_pandas()
+                    make_cube(cat, params_sides, TIM_params)
 
 
