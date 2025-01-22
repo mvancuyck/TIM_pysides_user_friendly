@@ -41,7 +41,6 @@ def load_cat():
     
     return 'pySIDES_from_uchuu', cat, cats_dir_path, int(117) #cube_gal_params_file, cube_params_file, params_sides_file, 
 
-
 if __name__ == "__main__":
 
     #parser to choose the simu and where to save the outputs 
