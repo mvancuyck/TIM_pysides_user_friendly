@@ -64,6 +64,21 @@ if __name__ == "__main__":
             
                 make_cube(cat, params_sides, TIM_params)
 
+            TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
+            file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
+            if(not os.path.isfile(file)):
+
+                TIM_params['save_continuum_only'] = False
+                TIM_params['save_full'] = False
+
+                #Load the catalog of the subfield
+                cat = Table.read(TIM_params["sides_cat_path"]+cfile)
+                cat = cat.to_pandas()
+            
+                make_cube(cat, params_sides, TIM_params, filter=True)
+                TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
+
+
             #Generate the CONCERTO cubes if wanted
             '''
             CONCERTO_params['run_name'] = f"pySIDES_from_uchuu_CONCERTO_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{CONCERTO_params['pixel_size']}arcsec_dnu{CONCERTO_params['freq_resol']/1e9}GHz"
