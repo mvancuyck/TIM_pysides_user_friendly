@@ -322,13 +322,11 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
     channels_flat = channels_list.ravel()
     Snu_flat = Snu_transmitted.ravel()
 
-    x_flat = np.repeat(cube_prop_dict['pos'][1], cube_prop_dict['shape'][1])  # Repeat each source position
-    y_flat = np.repeat(cube_prop_dict['pos'][1], cube_prop_dict['shape'][0])
+    if((len(cube_prop_dict['pos'][0]) != len(y_flat)*cube_prop_dict['shape'][0]) or (len(cube_prop_dict['pos'][1]) != len(x_flat)*cube_prop_dict['shape'][0])):
+        x_flat = np.repeat(cube_prop_dict['pos'][1], cube_prop_dict['shape'][0])  # Repeat each source position
+        y_flat = np.repeat(cube_prop_dict['pos'][0], cube_prop_dict['shape'][0])
+        cube_prop_dict['pos'] = (y_flat, x_flat)
 
-    pos = y_flat, x_flat
-    #cube_prop_dict['pos'] = pos 
-
-    embed()
     #Check only spectral axis
     #hist, _ = np.histogram(channels_flat, bins=cube_prop_dict['z_edges'], weights=Snu_flat)  
 
