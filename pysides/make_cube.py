@@ -345,7 +345,7 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict,filter=False):
         print('Compute channel locations and flux densities of '+line_name+' lines...')
         rest_freq = params_sides["nu_CO"] * J 
         if(not filter): Snu, channels = line_channel_flux_densities(line_name, rest_freq, cat, cube_prop_dict)
-        else: Snu, channels = line_filter_flux_densities(line_name, rest_freq, cat, cube_prop_dict)
+        else: Snu, channels = line_filter_flux_densities(line_name, rest_freq, cat, cube_prop_dict, params)
 
         print('Generate the non-smoothed '+line_name+' cube...')
         CO_oneJ_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
@@ -368,7 +368,7 @@ def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation,filte
 
     print('Compute channel locations and flux densities of [CII] line ('+name_relation+'et al.  recipe)...')
     if(not filter): Snu, channels = line_channel_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict)
-    else: Snu, channels = line_filter_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict)
+    else: Snu, channels = line_filter_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict, params)
     
     print('Generate the non-smoothed [CII] cube...')
     CII_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
@@ -384,7 +384,7 @@ def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict,filter=False):
     for line_name, line_nu in zip(params_sides['fir_lines_list'], params_sides['fir_lines_nu']):
         print('Compute channel locations and flux densities of ['+line_name+'] lines...')
         if(not filter): Snu, channels = line_channel_flux_densities(line_name, line_nu, cat, cube_prop_dict)
-        else: Snu, channels = line_filter_flux_densities(line_name, line_nu, cat, cube_prop_dict)
+        else: Snu, channels = line_filter_flux_densities(line_name, line_nu, cat, cube_prop_dict, params)
         print('Generate the non-smoothed ['+line_name+'] cube...')
         FIR_1line_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
 
@@ -416,7 +416,7 @@ def make_ci_cube(cat, params_sides, params, cube_prop_dict, filter=False):
     
         print('Compute channel locations and flux densities of ['+line_name+'] lines...')
         if(not filter): Snu, channels = line_channel_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict)
-        else: Snu, channels = line_filter_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict)
+        else: Snu, channels = line_filter_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict, params)
         
         print('Generate the non-smoothed ['+line_name+'] cube...')
         CI_one_trans_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
@@ -448,7 +448,8 @@ def make_cube(cat ,params_sides, params_cube,filter=False):
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
         
     print("Create continuum cubes..")                                                                              
-    continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
+    if(params_cube['save_continuum_only'] or params_cube['save_full']): 
+        continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
 
     print("Create CO cubes...")
     CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
