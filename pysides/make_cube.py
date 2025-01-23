@@ -448,7 +448,7 @@ def make_cube(cat ,params_sides, params_cube,filter=False):
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
         
     print("Create continuum cubes..")                                                                              
-    continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
+    continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
 
     print("Create CO cubes...")
     CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
