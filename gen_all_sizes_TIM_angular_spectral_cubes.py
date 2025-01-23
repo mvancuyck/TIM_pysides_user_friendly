@@ -64,9 +64,9 @@ if __name__ == "__main__":
             
                 make_cube(cat, params_sides, TIM_params)
 
-            TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
+            TIM_params['run_name'] = f"pySIDES_from_uchuu_gaussian_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
             file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
-            if(not os.path.isfile(file)):
+            if(not os.path.isfile(file) and l==0):
 
                 TIM_params['save_continuum_only'] = False
                 TIM_params['save_full'] = False
@@ -106,6 +106,6 @@ if __name__ == "__main__":
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + '_all_lines_de_Looze_smoothed_MJy_sr.fits' 
                 if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
 
-                TIM_params['run_name'] = f"pySIDES_from_uchuu_guassian_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
+                TIM_params['run_name'] = f"pySIDES_from_uchuu_gaussian_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + '_all_lines_de_Looze_smoothed_MJy_sr.fits' 
                 if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params, filter=True)
