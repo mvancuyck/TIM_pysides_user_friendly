@@ -93,7 +93,3 @@ if __name__ == "__main__":
                     cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                     cat = cat.to_pandas()
                     make_cube(cat, params_sides, TIM_params)
-
-
-OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile0_1.414deg_1.414deg_res20arcsec_dnu4.0GHz_full_de_Looze_smoothed_MJy_sr.fits
-OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile0_1.414deg_1.414deg_res20arcsec_dnu4.0GHz_full_de_Looze_smoothed_MJy_sr.fits
