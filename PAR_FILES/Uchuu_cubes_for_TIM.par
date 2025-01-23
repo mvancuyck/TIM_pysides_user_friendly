@@ -17,6 +17,8 @@ tile_sizes = [(54,1.414, 1.414), (117, 1,1),(120, 0.2,1) ] #,(70, 1.225,1.225)
 freq_min = 715e9 #Hz
 freq_max = 1250e9 #Hz
 freq_resol = 4e9 #Hz
+freq_width_in_sigma = 6 # where sigma = gaussian_fwhm_to_sigma * freq_resol
+
 
 Mstar_lim= 1e10
 
