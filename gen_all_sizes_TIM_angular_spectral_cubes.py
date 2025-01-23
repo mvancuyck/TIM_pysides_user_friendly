@@ -54,7 +54,7 @@ if __name__ == "__main__":
         for l, cfile in enumerate(files):
             
             #Generate the TIM cubes with params precised in TIM_params.par
-            TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
+            TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_"
             file = TIM_params['output_path'] +  TIM_params['run_name'] + 'full_de_Looze_smoothed_MJy_sr.fits' 
             embed()
             if(not os.path.isfile(file)):
@@ -95,3 +95,5 @@ if __name__ == "__main__":
                     make_cube(cat, params_sides, TIM_params)
 
 
+OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile0_1.414deg_1.414deg_res20arcsec_dnu4.0GHz_full_de_Looze_smoothed_MJy_sr.fits
+OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile0_1.414deg_1.414deg_res20arcsec_dnu4.0GHz_full_de_Looze_smoothed_MJy_sr.fits
