@@ -86,11 +86,12 @@ if __name__ == "__main__":
                 TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_"
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + '_all_lines_de_Looze_smoothed_MJy_sr.fits' 
 
+                #Load the catalog of the subfield
+                cat = Table.read(TIM_params["sides_cat_path"]+cfile)
+                cat = cat.to_pandas()
+                
                 if(not os.path.isfile(file)): 
 
-                    #Load the catalog of the subfield
-                    cat = Table.read(TIM_params["sides_cat_path"]+cfile)
-                    cat = cat.to_pandas()
                     make_cube(cat, params_sides, TIM_params)
 
 
