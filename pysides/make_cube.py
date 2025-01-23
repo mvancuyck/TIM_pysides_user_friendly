@@ -334,7 +334,7 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
 
     return Snu_flat, channels_flat
 
-def make_co_cube(cat, params_sides, params, cube_prop_dict):
+def make_co_cube(cat, params_sides, params, cube_prop_dict,filter=False):
 
     #Create the cube for each line, save it and add it to the lines cube
     first_Jup = 1
@@ -364,7 +364,7 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict):
 
     return CO_all_cubes 
 
-def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation):
+def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation,filter=False):
 
     print('Compute channel locations and flux densities of [CII] line ('+name_relation+'et al.  recipe)...')
     if(not filter): Snu, channels = line_channel_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict)
@@ -377,7 +377,7 @@ def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation):
 
     return CII_cubes
 
-def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict):
+def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict,filter=False):
 
     first_loop = True
 
@@ -406,7 +406,7 @@ def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict):
     
     return FIR_lines_cubes
 
-def make_ci_cube(cat, params_sides, params, cube_prop_dict):
+def make_ci_cube(cat, params_sides, params, cube_prop_dict, filter=False):
 
     line_names = ['CI10', 'CI21']
 
