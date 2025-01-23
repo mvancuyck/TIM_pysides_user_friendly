@@ -321,8 +321,8 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
     # Flatten channels_list and repeat pos accordingly
     channels_flat = channels_list.ravel()
     Snu_flat = Snu_transmitted.ravel()
-    embed()
-    if((len(cube_prop_dict['pos'][0]) != len(cube_prop_dict['pos'][0])*cube_prop_dict['shape'][0]) or (len(cube_prop_dict['pos'][1]) != len(cube_prop_dict['pos'][1])*cube_prop_dict['shape'][0])):
+    
+    if((len(cube_prop_dict['pos'][0]) != len(freq_obs)*cube_prop_dict['shape'][0]) or (len(cube_prop_dict['pos'][1]) != len(freq_obs)*cube_prop_dict['shape'][0])):
         x_flat = np.repeat(cube_prop_dict['pos'][1], cube_prop_dict['shape'][0])  # Repeat each source position
         y_flat = np.repeat(cube_prop_dict['pos'][0], cube_prop_dict['shape'][0])
         cube_prop_dict['pos'] = (y_flat, x_flat)
