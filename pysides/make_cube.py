@@ -326,7 +326,7 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
     y_flat = np.repeat(cube_prop_dict['pos'][1], cube_prop_dict['shape'][0])
 
     pos = y_flat, x_flat
-    cube_prop_dict['pos'] = pos 
+    #cube_prop_dict['pos'] = pos 
 
     embed()
     #Check only spectral axis
