@@ -269,6 +269,71 @@ def line_channel_flux_densities(line, rest_freq, cat, cube_prop_dict):
     
     return S, channel
 
+def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
+    """
+    Find the overlapping spectral channels for an array of observed frequencies.
+
+    Parameters:
+    - w : astropy.wcs.WCS
+        The WCS object with a frequency axis.
+    - f_obs_array : array-like
+        Array of observed frequencies (in Hz).
+    - gaussian_fwhm_to_sigma : float
+        Conversion factor from FWHM to sigma.
+    - n_channels : int
+        Number of spectral channels.
+
+    Returns:
+    - list of lists of int
+        List of indices of channels for each frequency in `f_obs_array`.
+    """
+
+    z = np.arange(0,cube_prop_dict['shape'][0],1)
+    w = cube_prop_dict['w']
+    freq_list = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
+    
+    # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
+    fwhm = w.wcs.cdelt[2] * gaussian_fwhm_to_sigma # Frequency resolution (step between consecutive channels)
+    sigma = fwhm #/ gaussian_fwhm_to_sigma # Convert FWHM to sigma
+    lower_bounds = freq_list - params['freq_width_in_sigma']/2 * sigma 
+    upper_bounds = freq_list + params['freq_width_in_sigma']/2 * sigma 
+
+    #test_indices = [89938, 1388638, 10271987]
+    freq_obs = np.asarray(rest_freq / (1 + cat['redshift']) )#GHz
+    nudelt = abs(cube_prop_dict['w'].wcs.cdelt[2]) / 1e9 #GHz
+    vdelt = (cst.c * 1e-3) * nudelt / freq_obs #km/s
+    Snu = np.asarray(cat['I'+line] / vdelt)  #Jy
+
+    # Broadcasting: Check which channels contain each observed frequency
+    mask = (freq_obs[:, np.newaxis] >= lower_bounds/1e9) & (freq_obs[:, np.newaxis] < upper_bounds/1e9)
+    channels_list = np.where(mask, np.arange(len(freq_list)), -2)
+    #----
+    #Gaussian spectral profile
+    transmission = np.exp(-((freq_obs[:, np.newaxis] - freq_list/1e9) ** 2) / (2 * (sigma/1e9)**2)) 
+
+    #Lorentz spectral profile 
+    #transmission = 1/(((freq_obs[:, np.newaxis]-freq_list/1e9)/(fwhm/1e9/2))**2 + 1 )
+    #----
+    Snu_transmitted = Snu[:,np.newaxis] * transmission * mask.astype(int)
+    # Get indices of overlapping channels for each freq_obs
+    #indices = np.where(mask)
+    
+    # Flatten channels_list and repeat pos accordingly
+    channels_flat = channels_list.ravel()
+    Snu_flat = Snu_transmitted.ravel()
+
+    x_flat = np.repeat(cube_prop_dict['pos'][1], cube_prop_dict['shape'][1])  # Repeat each source position
+    y_flat = np.repeat(cube_prop_dict['pos'][1], cube_prop_dict['shape'][0])
+
+    pos = y_flat, x_flat
+    cube_prop_dict['pos'] = pos 
+
+    embed()
+    #Check only spectral axis
+    #hist, _ = np.histogram(channels_flat, bins=cube_prop_dict['z_edges'], weights=Snu_flat)  
+
+    return Snu_flat, channels_flat
+
 def make_co_cube(cat, params_sides, params, cube_prop_dict):
 
     #Create the cube for each line, save it and add it to the lines cube
@@ -279,7 +344,8 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict):
         line_name = "CO{}{}".format(J, J - 1)
         print('Compute channel locations and flux densities of '+line_name+' lines...')
         rest_freq = params_sides["nu_CO"] * J 
-        Snu, channels = line_channel_flux_densities(line_name, rest_freq, cat, cube_prop_dict)
+        if(not filter): Snu, channels = line_channel_flux_densities(line_name, rest_freq, cat, cube_prop_dict)
+        else: Snu, channels = line_filter_flux_densities(line_name, rest_freq, cat, cube_prop_dict)
 
         print('Generate the non-smoothed '+line_name+' cube...')
         CO_oneJ_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
@@ -301,7 +367,8 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict):
 def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation):
 
     print('Compute channel locations and flux densities of [CII] line ('+name_relation+'et al.  recipe)...')
-    Snu, channels = line_channel_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict)
+    if(not filter): Snu, channels = line_channel_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict)
+    else: Snu, channels = line_filter_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict)
     
     print('Generate the non-smoothed [CII] cube...')
     CII_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
@@ -316,8 +383,8 @@ def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict):
 
     for line_name, line_nu in zip(params_sides['fir_lines_list'], params_sides['fir_lines_nu']):
         print('Compute channel locations and flux densities of ['+line_name+'] lines...')
-        Snu, channels = line_channel_flux_densities(line_name, line_nu, cat, cube_prop_dict)
-
+        if(not filter): Snu, channels = line_channel_flux_densities(line_name, line_nu, cat, cube_prop_dict)
+        else: Snu, channels = line_filter_flux_densities(line_name, line_nu, cat, cube_prop_dict)
         print('Generate the non-smoothed ['+line_name+'] cube...')
         FIR_1line_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
 
@@ -348,8 +415,9 @@ def make_ci_cube(cat, params_sides, params, cube_prop_dict):
     for line_name in line_names:
     
         print('Compute channel locations and flux densities of ['+line_name+'] lines...')
-        Snu, channels = line_channel_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict)
-    
+        if(not filter): Snu, channels = line_channel_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict)
+        else: Snu, channels = line_filter_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict)
+        
         print('Generate the non-smoothed ['+line_name+'] cube...')
         CI_one_trans_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
 
@@ -369,7 +437,7 @@ def make_ci_cube(cat, params_sides, params, cube_prop_dict):
 
     return CI_both_cubes
 
-def make_cube(cat ,params_sides, params_cube,):
+def make_cube(cat ,params_sides, params_cube,filter=False):
 
     print("Set World Coordinates System...")
     cube_prop_dict = set_wcs(cat, params_cube)
@@ -380,13 +448,13 @@ def make_cube(cat ,params_sides, params_cube,):
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
         
     print("Create continuum cubes..")                                                                              
-    continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
+    continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
 
     print("Create CO cubes...")
-    CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict)
+    CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
 
     print("Create CI cubes...")
-    CI_cubes = make_ci_cube(cat, params_sides, params_cube, cube_prop_dict)
+    CI_cubes = make_ci_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
 
     CII_relations_2compute = []
 
@@ -402,7 +470,7 @@ def make_cube(cat ,params_sides, params_cube,):
         FIR_lines_cubes = make_fir_lines_cube(cat, params_sides, params_cube, cube_prop_dict)
     '''
     for CII_relation_name in CII_relations_2compute:
-        CII_cubes = make_cii_cube(cat, params_sides, params_cube, cube_prop_dict, CII_relation_name)
+        CII_cubes = make_cii_cube(cat, params_sides, params_cube, cube_prop_dict, CII_relation_name, filter=filter)
 
         #Compute and save the combined cubes
 
