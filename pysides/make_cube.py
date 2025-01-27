@@ -30,7 +30,7 @@ def set_wcs(cat,params):
 
     #-----------------SET WCS-----------------
     # Coordinate increment at reference point
-
+    embed()
     if ((not "ra" in cat.columns) or (not "dec" in cat.columns)):
         print("generating the coordinates of the sources")
         ra,dec = gen_radec(cat, params )
@@ -294,7 +294,7 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
     
     # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
     fwhm = w.wcs.cdelt[2] * gaussian_fwhm_to_sigma # Frequency resolution (step between consecutive channels)
-    sigma = fwhm #/ gaussian_fwhm_to_sigma # Convert FWHM to sigma
+    sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma
     lower_bounds = freq_list - params['freq_width_in_sigma']/2 * sigma 
     upper_bounds = freq_list + params['freq_width_in_sigma']/2 * sigma 
 
