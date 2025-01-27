@@ -30,7 +30,6 @@ def set_wcs(cat,params):
 
     #-----------------SET WCS-----------------
     # Coordinate increment at reference point
-    embed()
     if ((not "ra" in cat.columns) or (not "dec" in cat.columns)):
         print("generating the coordinates of the sources")
         ra,dec = gen_radec(cat, params )
@@ -73,8 +72,8 @@ def set_wcs(cat,params):
     # compute the dimensions of the three axes
     shape = [np.ceil(zmax).astype(int), np.ceil(pos[0].max()), np.ceil(pos[1].max())]
     shape = [i//2*2+1 for i in shape] #force an odd number of pixels to generate better psf
-    x_edges = list(np.arange(-0.5, shape[1] + 0.5, 1)) 
-    y_edges = list(np.arange(-0.5, shape[0] + 0.5, 1)) 
+    x_edges = list(np.arange(-0.5, shape[2] + 0.5, 1)) 
+    y_edges = list(np.arange(-0.5, shape[1] + 0.5, 1)) 
     z_edges = list(np.arange(-0.5, shape[0] + 0.5, 1))
 
     wcs_dict = {}
