@@ -108,6 +108,31 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     return Snu_arr  
 
 ### Add fluxes allows to add some wavelnegth a posteriori
+
+
+def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
+
+    stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
+
+    Uindex = np.round((Umean - SED_dict["Umean"][0]) / SED_dict["dU"])
+    Uindex = Uindex.astype(int)
+    Uindex = np.maximum(Uindex, 0)
+    Uindex = np.minimum(Uindex, np.size(SED_dict["Umean"]) - 1)
+
+    lambda_rest = lambda_list / (1 + np.array(redshift)[:, np.newaxis]) * u.um #lambda list is in micron!
+    nu_rest_Hz = (cst.c * u.m/u.s) / lambda_rest.to(u.m)
+    nuLnu     = np.zeros([len(redshift), len(lambda_list)])
+    for j,k in enumerate(Uindex):
+        embed()
+        nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
+    nuLnu /= nu_rest_Hz.value
+    Lnu = (3.828e26 * u.W) * np.array(LIR)[:, np.newaxis] * nuLnu / u.Hz #W/Hz (the output of the worker is in Hz^-1)
+    Numerator = Lnu * ( 1 + np.array(redshift)[:,np.newaxis]) * (1/ (np.pi *  4 ))
+    Denominator = ((np.asarray(Dlum) * u.Mpc).to(u.m)) ** 2
+    Snu_arr = ( Numerator / Denominator[:, np.newaxis] ).to(u.Jy)
+
+    return Snu_arr  
+
 def add_fluxes(cat, params, new_lambda):
 
     tstart = time()
