@@ -104,11 +104,26 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, params)
     lambda_rest = lambda_list / (1 + np.array(redshift)[:, np.newaxis]) * u.um #lambda list is in micron!
     lower_bounds_rest = lower_bounds / (1 + np.array(redshift)[:, np.newaxis]) * u.um 
     upper_bounds_rest = upper_bounds / (1 + np.array(redshift)[:, np.newaxis]) * u.um 
-    nu_rest_Hz = (cst.c * u.m/u.s) / lambda_rest.to(u.m)
-    nuLnu     = np.zeros([len(redshift), len(lambda_list)])
-    for j,k in enumerate(Uindex):
 
-        nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
+    nu_rest_Hz = [] #(cst.c * u.m/u.s) / lambda_rest.to(u.m)
+    nuLnu = [] #np.zeros([len(redshift), len(lambda_list)])
+    filtered_intervals_list = []
+    
+    for j,k in enumerate(Uindex):
+        mask = np.logical_and(SED_dict["lambda"][:, np.newaxis]>= lower_bounds, SED_dict[stype[j]][k][:, np.newaxis] <= upper_bounds)
+        
+        # Identify which interval each x belongs to
+        interval_idx = np.argmax(mask, axis=1)  # Index of the first True in each row
+        valid_points = mask.any(axis=1)  # True for x values inside any interval
+
+        # Filter x and y values in a vectorized way
+        nu_rest_Hz.append( SED_dict["lambda"][valid_points] )
+        nuLnu.append( SED_dict[stype[j]][k][valid_points] )
+        filtered_intervals_list.append( interval_idx[valid_points] )# Interval index for each point 
+
+        #nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
+
+    embed()
     nuLnu /= nu_rest_Hz.value
     Lnu = (3.828e26 * u.W) * np.array(LIR)[:, np.newaxis] * nuLnu / u.Hz #W/Hz (the output of the worker is in Hz^-1)
     Numerator = Lnu * ( 1 + np.array(redshift)[:,np.newaxis]) * (1/ (np.pi *  4 ))
@@ -133,7 +148,6 @@ def gen_Snu_arro(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     nu_rest_Hz = (cst.c * u.m/u.s) / lambda_rest.to(u.m)
     nuLnu     = np.zeros([len(redshift), len(lambda_list)])
     for j,k in enumerate(Uindex):
-        embed()
         nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
     nuLnu /= nu_rest_Hz.value
     Lnu = (3.828e26 * u.W) * np.array(LIR)[:, np.newaxis] * nuLnu / u.Hz #W/Hz (the output of the worker is in Hz^-1)
@@ -223,7 +237,6 @@ def gen_LFIR_vec(LIR_LFIR_ratio_dict, redshift, LIR, Umean, issb):
        233.72110317, 232.96165198, 232.20712032, 231.45746053,
        230.71262558, 229.97256904, 229.23724508]
 
-   230.71262558, 229.97256904, 229.23724508])
 
 SED_dict_lambda = [1.0 ,
 1.009 ,
