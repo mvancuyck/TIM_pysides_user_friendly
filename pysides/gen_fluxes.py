@@ -86,7 +86,7 @@ def gen_fluxes(cat, params):
 
     return cat
 
-def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, params):
+def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
 
@@ -96,7 +96,7 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, params)
     Uindex = np.minimum(Uindex, np.size(SED_dict["Umean"]) - 1)
 
     # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
-    sigma = 5 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    sigma = 5 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
     lower_bounds = lambda_list - 6/2 * sigma / (1 + np.array(redshift)[:, np.newaxis]) * u.um
     upper_bounds = lambda_list + 6/2 * sigma / (1 + np.array(redshift)[:, np.newaxis]) * u.um
 
