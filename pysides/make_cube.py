@@ -239,6 +239,8 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict):
     print("Generate CONCERTO monochromatic fluxes...")
     Snu_arr = gen_Snu_arr(lambda_list.value, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
 
+    embed()
+
     return Snu_arr
 
 def make_continuum_cube(cat, params_sides, params, cube_prop_dict):
