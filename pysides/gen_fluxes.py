@@ -16,6 +16,7 @@ from functools import partial
 from itertools import zip_longest
 from progress.bar import Bar
 from IPython import embed
+import time
 
 def gen_fluxes(cat, params):
 
@@ -86,8 +87,9 @@ def gen_fluxes(cat, params):
 
     return cat
 
-def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
+def gen_Snu_arr_filter(lambda_list, lower_bounds, upper_bounds, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
+    start_time = time.time()
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
 
@@ -96,23 +98,16 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     Uindex = np.maximum(Uindex, 0)
     Uindex = np.minimum(Uindex, np.size(SED_dict["Umean"]) - 1)
 
-    # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
-    sigma = 5 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-    lower_bounds = lambda_list - 6/2 * sigma 
-    upper_bounds = lambda_list + 6/2 * sigma 
-
     lambda_rest = lambda_list / (1 + np.array(redshift)[:, np.newaxis]) * u.um #lambda list is in micron!
     lower_bounds_rest = lower_bounds / (1 + np.array(redshift)[:, np.newaxis]) * u.um 
     upper_bounds_rest = upper_bounds / (1 + np.array(redshift)[:, np.newaxis]) * u.um 
 
-    nu_rest_Hz = [] #(cst.c * u.m/u.s) / lambda_rest.to(u.m)
-    nuLnu = [] #np.zeros([len(redshift), len(lambda_list)])
+    lambda_rest_sed = [] 
+    nuLnu_list = [] #np.zeros([len(redshift), len(lambda_list)])
     filtered_intervals_list = []
-    source_id_list = []
-
-    bar = Bar('Generates the SEDs', max=len(Uindex[:30]))
-
-    for j,k in enumerate(Uindex[:30]):
+    #source_id_list = []
+    bar = Bar('Generates the SEDs', max=len(Uindex))
+    for j,k in enumerate(Uindex):
 
         mask = np.logical_and(SED_dict["lambda"][:, np.newaxis]>= lower_bounds, SED_dict[stype[j]][k][:, np.newaxis] <= upper_bounds)
         
@@ -121,29 +116,31 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
         valid_points = mask.any(axis=1)  # True for x values inside any interval
 
         # Filter x and y values in a vectorized way
-        nu_rest_Hz.append( SED_dict["lambda"][valid_points] )
-        nuLnu.append( SED_dict[stype[j]][k][valid_points] )
+        lambda_rest_sed.append( SED_dict["lambda"][valid_points] )
+        nuLnu_list.append( SED_dict[stype[j]][k][valid_points] )
         filtered_intervals_list.append( interval_idx[valid_points] )# Interval index for each point 
-        source_id_list.append(j*np.ones(len(interval_idx[valid_points])))
+        #source_id_list.append(j*np.ones(len(interval_idx[valid_points])))
 
         #nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
         bar.next()
     bar.finish
 
-
-    embed()
-    nuLnu /= nu_rest_Hz.value
+    nu_rest_sed_Hz = (cst.c) / (np.asarray(lambda_rest_sed)*1e-6) #* ( 1 + np.array(redshift)[:,np.newaxis])
+    nu_obs_sed_Hz  = nu_rest_sed_Hz / ( 1 + np.array(redshift)[:,np.newaxis])
+    nuLnu = np.asarray(nuLnu_list) / np.asarray(nu_rest_sed_Hz)
     Lnu = (3.828e26 * u.W) * np.array(LIR)[:, np.newaxis] * nuLnu / u.Hz #W/Hz (the output of the worker is in Hz^-1)
     Numerator = Lnu * ( 1 + np.array(redshift)[:,np.newaxis]) * (1/ (np.pi *  4 ))
     Denominator = ((np.asarray(Dlum) * u.Mpc).to(u.m)) ** 2
     Snu_arr = ( Numerator / Denominator[:, np.newaxis] ).to(u.Jy)
 
-    return Snu_arr  
+    print("Generated SEDs in %s minutes ---" % np.round((time.time() - start_time)/60,2))
+
+    return Snu_arr, nu_obs_sed_Hz, np.asarray(filtered_intervals_list)#, np.asarray(source_id_list)
 
 ### Add fluxes allows to add some wavelnegth a posteriori
 
 
-def gen_Snu_arro(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
+def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
