@@ -88,7 +88,6 @@ def gen_fluxes(cat, params):
 
 def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
-    embed()
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
 
@@ -131,7 +130,7 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
         bar.next()
     bar.finish
 
-
+    
     embed()
     nuLnu /= nu_rest_Hz.value
     Lnu = (3.828e26 * u.W) * np.array(LIR)[:, np.newaxis] * nuLnu / u.Hz #W/Hz (the output of the worker is in Hz^-1)
