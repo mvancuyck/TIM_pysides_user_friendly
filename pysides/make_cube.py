@@ -239,7 +239,6 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict):
     print("Generate CONCERTO monochromatic fluxes...")
     Snu_arr = gen_Snu_arr(lambda_list.value, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
 
-    embed()
 
     return Snu_arr
 
@@ -438,6 +437,7 @@ def make_ci_cube(cat, params_sides, params, cube_prop_dict, filter=False):
 
 def make_cube(cat ,params_sides, params_cube,filter=False):
 
+
     print("Set World Coordinates System...")
     cube_prop_dict = set_wcs(cat, params_cube)
     
@@ -445,7 +445,7 @@ def make_cube(cat ,params_sides, params_cube,filter=False):
     if params_cube['gen_cube_smoothed_Jy_beam'] or params_cube['gen_cube_smoothed_MJy_sr']:
         print("Compute the beams for all channels...")
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
-        
+    
     print("Create continuum cubes..")                                                                              
     if(params_cube['save_continuum_only'] or params_cube['save_full']): 
         continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
