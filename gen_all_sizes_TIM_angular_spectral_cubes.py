@@ -67,6 +67,7 @@ if __name__ == "__main__":
 
             TIM_params['run_name'] = f"pySIDES_from_uchuu_gaussian_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
             file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
+            embed()
             if(not os.path.isfile(file) and l==0):
 
                 TIM_params['save_continuum_only'] = False
