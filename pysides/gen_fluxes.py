@@ -88,6 +88,8 @@ def gen_fluxes(cat, params):
 
 def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
+    embed()
+
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
 
     Uindex = np.round((Umean - SED_dict["Umean"][0]) / SED_dict["dU"])
