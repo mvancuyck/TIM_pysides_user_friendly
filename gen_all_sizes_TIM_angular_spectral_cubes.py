@@ -45,8 +45,6 @@ if __name__ == "__main__":
     params_sides = load_params('PAR_FILES/SIDES_from_original_with_fir_lines.par')
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
     CONCERTO_params = load_params('PAR_FILES/Uchuu_cubes_for_CONCERTO.par')
-
-    embed()
     
     for i, (tile_sizeRA, tile_sizeDEC) in enumerate(TIM_params['tile_size']): 
         
@@ -61,7 +59,6 @@ if __name__ == "__main__":
 
             if(not os.path.isfile(file)):
 
-                
                 #Load the catalog of the subfield
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
