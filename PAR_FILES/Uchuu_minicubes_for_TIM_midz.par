@@ -25,7 +25,7 @@ telescop_diameter = 1.9 #m
 
 #3D cubes parameters
 z_centers = (0.64,0.90,1.18,1.5)
-dz        = (0.22,0.24,0.28,0.3)
+dz        = (0.22,0.24,0.28,0.3) 
 
 #####Cubes output parameters#####
 run_name = "pySIDES_from_uchuu_TIM"
@@ -44,9 +44,9 @@ gen_cube_CII_Lagache  = False
 #Choose the cubes to save
 save_each_transition  = False	#save the cubes for each tranistion (CO10, CO21, [CI]10, [CI]21...)
 save_each_line 	= True 	#save the cubes for each line (CO, [CI], [CII])
-save_continuum_only   = False	#save the cube(s) with only continuum
+save_continuum_only   = True	#save the cube(s) with only continuum
 save_all_lines	      = True	#save the cube(s) with all the lines
-save_full 	      = False	#save the full cube(s) with everything
+save_full 	      = True	#save the full cube(s) with everything
 save_galaxies = True
 
 ##############################
