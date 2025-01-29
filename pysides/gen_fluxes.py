@@ -86,7 +86,7 @@ def gen_fluxes(cat, params):
 
     return cat
 
-def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, params):
+def gen_Snu_arrco(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, params):
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
 
@@ -135,7 +135,7 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, params)
 ### Add fluxes allows to add some wavelnegth a posteriori
 
 
-def gen_Snu_arro(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
+def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
 
