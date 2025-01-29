@@ -14,7 +14,7 @@ from astropy.stats import gaussian_fwhm_to_sigma
 from multiprocessing import Pool, cpu_count
 from functools import partial
 from itertools import zip_longest
-
+from progress.bar import Bar
 from IPython import embed
 
 def gen_fluxes(cat, params):
@@ -99,8 +99,8 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
     # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
     sigma = 5 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-    lower_bounds = lambda_list - 6/2 * sigma / (1 + np.array(redshift)[:, np.newaxis]) * u.um
-    upper_bounds = lambda_list + 6/2 * sigma / (1 + np.array(redshift)[:, np.newaxis]) * u.um
+    lower_bounds = lambda_list - 6/2 * sigma 
+    upper_bounds = lambda_list + 6/2 * sigma 
 
     lambda_rest = lambda_list / (1 + np.array(redshift)[:, np.newaxis]) * u.um #lambda list is in micron!
     lower_bounds_rest = lower_bounds / (1 + np.array(redshift)[:, np.newaxis]) * u.um 
@@ -110,6 +110,8 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     nuLnu = [] #np.zeros([len(redshift), len(lambda_list)])
     filtered_intervals_list = []
     source_id_list = []
+
+    bar = Bar('Generates the SEDs', max=len(Uindex))
 
     for j,k in enumerate(Uindex):
 
@@ -126,6 +128,9 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
         source_id_list.append(j*np.ones(len(interval_idx[valid_points])))
 
         #nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
+        bar.next()
+    bar.finish
+
 
     embed()
     nuLnu /= nu_rest_Hz.value
@@ -140,6 +145,7 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
 
 def gen_Snu_arro(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
+
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
 
