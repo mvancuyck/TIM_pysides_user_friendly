@@ -110,9 +110,9 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     filtered_intervals_list = []
     source_id_list = []
 
-    bar = Bar('Generates the SEDs', max=len(Uindex))
+    bar = Bar('Generates the SEDs', max=len(Uindex[:30]))
 
-    for j,k in enumerate(Uindex):
+    for j,k in enumerate(Uindex[:30]):
 
         mask = np.logical_and(SED_dict["lambda"][:, np.newaxis]>= lower_bounds, SED_dict[stype[j]][k][:, np.newaxis] <= upper_bounds)
         
@@ -130,7 +130,7 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
         bar.next()
     bar.finish
 
-    
+
     embed()
     nuLnu /= nu_rest_Hz.value
     Lnu = (3.828e26 * u.W) * np.array(LIR)[:, np.newaxis] * nuLnu / u.Hz #W/Hz (the output of the worker is in Hz^-1)
