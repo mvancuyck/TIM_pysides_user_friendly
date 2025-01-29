@@ -86,7 +86,7 @@ def gen_fluxes(cat, params):
 
     return cat
 
-def gen_Snu_arrco(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, params):
+def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, params):
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
 
@@ -96,8 +96,7 @@ def gen_Snu_arrco(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, param
     Uindex = np.minimum(Uindex, np.size(SED_dict["Umean"]) - 1)
 
     # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
-    fwhm = cst.c / (params['wcs'].wcs.cdelt[2]) * 1e6 # 
-    sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma
+    sigma = 5 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     lower_bounds = lambda_list - 6/2 * sigma / (1 + np.array(redshift)[:, np.newaxis]) * u.um
     upper_bounds = lambda_list + 6/2 * sigma / (1 + np.array(redshift)[:, np.newaxis]) * u.um
 
@@ -108,8 +107,10 @@ def gen_Snu_arrco(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, param
     nu_rest_Hz = [] #(cst.c * u.m/u.s) / lambda_rest.to(u.m)
     nuLnu = [] #np.zeros([len(redshift), len(lambda_list)])
     filtered_intervals_list = []
-    
+    source_id_list = []
+
     for j,k in enumerate(Uindex):
+
         mask = np.logical_and(SED_dict["lambda"][:, np.newaxis]>= lower_bounds, SED_dict[stype[j]][k][:, np.newaxis] <= upper_bounds)
         
         # Identify which interval each x belongs to
@@ -120,6 +121,7 @@ def gen_Snu_arrco(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, param
         nu_rest_Hz.append( SED_dict["lambda"][valid_points] )
         nuLnu.append( SED_dict[stype[j]][k][valid_points] )
         filtered_intervals_list.append( interval_idx[valid_points] )# Interval index for each point 
+        source_id_list.append(j*np.ones(len(interval_idx[valid_points])))
 
         #nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
 
@@ -135,7 +137,7 @@ def gen_Snu_arrco(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb, param
 ### Add fluxes allows to add some wavelnegth a posteriori
 
 
-def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
+def gen_Snu_arro(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
 
