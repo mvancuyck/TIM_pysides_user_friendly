@@ -235,9 +235,6 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict):
     w = cube_prop_dict['w']
     channels = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
     lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um)
-    #lambda_res =  ( cst.c * (u.m/u.s)  / ( * u.Hz)  ).to(u.um)
-    print('here')
-    embed()
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
     print("Generate CONCERTO monochromatic fluxes...")
     Snu_arr = gen_Snu_arr(lambda_list.value, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
