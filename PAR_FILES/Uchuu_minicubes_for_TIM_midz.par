@@ -8,8 +8,8 @@ Nmax=120
 sides_cat_path  = "/net/CONCERTO/home/mvancuyck/full_mmCOLIM/outputs_cubes/"
 pixel_size = 20 #arcsec
 
-tile_sizes = [(54,1.414, 1.414), (117, 1,1),(120, 0.2,1) ] #,(70, 1.225,1.225)
-tile_size =  [   (1.414, 1.414),     ( 1,1),    ( 0.2,1) ] #,   ( 1.225,1.225)
+tile_sizes = [(117, 1,1),(120, 0.2,1) ] #,(70, 1.225,1.225)
+tile_size =  [    ( 1,1),    ( 0.2,1) ] #,   ( 1.225,1.225)
 
 #Instrument's parameters
 
