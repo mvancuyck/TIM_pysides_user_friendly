@@ -461,7 +461,7 @@ def make_cube(cat ,params_sides, params_cube,filter=False):
     
     print("Create continuum cubes..")                                                                              
     if(params_cube['save_continuum_only'] or params_cube['save_full']): 
-        continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
+        continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
 
     print("Create CO cubes...")
     CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
