@@ -1,4 +1,4 @@
-from pysides.gen_fluxes import gen_Snu_arr
+from pysides.gen_fluxes import gen_Snu_arr, gen_Snu_arr_filter
 from astropy.io import fits
 import astropy.units as u
 import scipy.constants as cst
@@ -229,26 +229,38 @@ def save_cubes(cube_input, cube_prop_dict, params_sides, params, component_name,
     
     return cubes_dict
 
-def channel_flux_densities(cat, params_sides, cube_prop_dict):
+def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=False):
 
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
     channels = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
+
+    # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
+    fwhm = w.wcs.cdelt[2] * gaussian_fwhm_to_sigma # Frequency resolution (step between consecutive channels)
+    sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma
+    lower_bounds = channels - params['freq_width_in_sigma']/2 * sigma 
+    upper_bounds = channels + params['freq_width_in_sigma']/2 * sigma 
+
     lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um)
+    lambda_lower_bound = ( cst.c * (u.m/u.s)  / (np.asarray(lower_bounds) * u.Hz)  ).to(u.um)
+    lambda_upper_bound = ( cst.c * (u.m/u.s)  / (np.asarray(upper_bounds) * u.Hz)  ).to(u.um)
+
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
     print("Generate CONCERTO monochromatic fluxes...")
-    Snu_arr = gen_Snu_arr(lambda_list.value, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
-
-
+    if(not filter): Snu_arr = gen_Snu_arr(lambda_list.value, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
+    else: Snu_arr, nu_obs_sed_Hz, channels_list = gen_Snu_arr_filter(lambda_list.value, 
+                                                                     lambda_lower_bound.value,  
+                                                                     lambda_upper_bound.value, 
+                                                                     SED_dict, cat["redshift"], 
+                                                                     cat['mu']*cat["LIR"], cat["Umean"], 
+                                                                     cat["Dlum"], cat["issb"])
     return Snu_arr
 
-def make_continuum_cube(cat, params_sides, params, cube_prop_dict):
-
+def make_continuum_cube(cat, params_sides, params, cube_prop_dict, filter=False):
 
     continuum_nobeam_Jypix = []
 
-    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict)
-
+    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, params, filter=filter)
     for f in range(0, cube_prop_dict['shape'][0]):      
         row = channels_flux_densities[:,f] #Jy/pix
         histo, y_edges, x_edges = np.histogram2d(cube_prop_dict['pos'][0], cube_prop_dict['pos'][1], bins=(cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=row)
@@ -446,6 +458,7 @@ def make_cube(cat ,params_sides, params_cube,filter=False):
         print("Compute the beams for all channels...")
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
     
+    embed()
     print("Create continuum cubes..")                                                                              
     if(params_cube['save_continuum_only'] or params_cube['save_full']): 
         continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
