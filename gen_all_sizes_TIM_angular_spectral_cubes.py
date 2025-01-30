@@ -104,6 +104,7 @@ if __name__ == "__main__":
 
 
                 TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{zrange}.par')
+                embed()
 
 
                 #Generate the TIM cubes with params precised in TIM_params.par
