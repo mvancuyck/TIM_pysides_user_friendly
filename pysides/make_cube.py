@@ -247,6 +247,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=Fal
 
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
     print("Generate CONCERTO monochromatic fluxes...")
+    embed()
     if(not filter): Snu_arr = gen_Snu_arr(lambda_list.value, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
     else: Snu_arr, nu_obs_sed_Hz, channels_list = gen_Snu_arr_filter(lambda_list.value, 
                                                                      lambda_lower_bound.value,  
@@ -458,7 +459,6 @@ def make_cube(cat ,params_sides, params_cube,filter=False):
         print("Compute the beams for all channels...")
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
     
-    embed()
     print("Create continuum cubes..")                                                                              
     if(params_cube['save_continuum_only'] or params_cube['save_full']): 
         continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict)
