@@ -98,7 +98,7 @@ def gen_Snu_arr_filter(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     Uindex = np.maximum(Uindex, 0)
     Uindex = np.minimum(Uindex, np.size(SED_dict["Umean"]) - 1)
 
-    lambda_rest = lambda_list / (1 + np.array(redshift)[:, np.newaxis]) * u.um #lambda list is in micron!
+    lambda_rest = lambda_list / (1 + np.array(redshift)[:, np.newaxis]) #lambda list is in micron!
     
     lambda_rest_sed = [] 
     nuLnu_list = [] #np.zeros([len(redshift), len(lambda_list)])
