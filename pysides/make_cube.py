@@ -257,6 +257,17 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=Fal
                                                                      SED_dict, cat["redshift"], 
                                                                      cat['mu']*cat["LIR"], cat["Umean"], 
                                                                      cat["Dlum"], cat["issb"])
+        
+        mask = (nu_obs_Hz[:,:, np.newaxis] >= lower_bounds) & (nu_obs_Hz[:,:, np.newaxis] < upper_bounds)
+
+        embed()
+        Snu_transmitted = Snu[:,np.newaxis] * transmission * mask.astype(int)
+
+        transmission = np.zeros_like(mask)
+        transmission = np.exp(-((nu_obs_Hz[:,:,np.newaxis] -channels) ** 2) / (2 * (sigma/1e9)**2)) 
+
+        
+
         embed()
         #for f,channel in enumerate(channels):
 
