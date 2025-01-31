@@ -237,7 +237,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=Fal
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
     print("Generate CONCERTO monochromatic fluxes...")
     embed()
-    if(not filter): lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um)
+    if(not filter): lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um).value
     else:
 
         # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
@@ -245,23 +245,19 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=Fal
         sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma
         lower_bounds = channels - params['freq_width_in_sigma']/2 * sigma 
         upper_bounds = channels + params['freq_width_in_sigma']/2 * sigma 
+        freq_list = np.linspace(lower_bounds.min(), upper_bounds.max(), 10*len(channels) )
+        lambda_list = ( cst.c * (u.m/u.s)  / (np.asarray(freq_list) * u.Hz)  ).to(u.um).value
+        
 
-        lambda_lower_bound = ( cst.c * (u.m/u.s)  / (np.asarray(lower_bounds) * u.Hz)  ).to(u.um)
-        lambda_upper_bound = ( cst.c * (u.m/u.s)  / (np.asarray(upper_bounds) * u.Hz)  ).to(u.um)
-
-        lambda_list = np.arange(lambda_lower_bound.min(), lambda_upper_bound.max(), 0.2 )
-
-    Snu_arr = gen_Snu_arr(lambda_list.value, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
+    Snu_arr = gen_Snu_arr(lambda_list, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
 
     if(filter):
 
-        embed()
+        mask = (freq_list[:,np.newaxis] >= lower_bounds) & (freq_list[:,np.newaxis] < upper_bounds)
+        transmission = np.exp(-((freq_list[:,np.newaxis]- channels) ** 2) / (2 * (sigma)**2)) 
+        Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * mask.astype(int)#* transmission 
+        freq_transmitted = freq_list[:,np.newaxis]*mask
 
-        mask = (nu_obs_Hz[:,:, np.newaxis] >= lower_bounds) & (nu_obs_Hz[:,:, np.newaxis] < upper_bounds)
-        transmission = np.zeros_like(mask)
-        transmission = np.exp(-((nu_obs_Hz[:,:,np.newaxis] -channels) ** 2) / (2 * (sigma)**2)) 
-
-        Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * transmission * mask.astype(int)
         Snu_transmitted = np.sum(Snu_arr_transmitted  * mask.astype(int), axis=1)
 
         embed()
