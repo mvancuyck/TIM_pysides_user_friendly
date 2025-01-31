@@ -253,9 +253,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=Fal
         lambda_lower_bound = ( cst.c * (u.m/u.s)  / (np.asarray(lower_bounds) * u.Hz)  ).to(u.um)
         lambda_upper_bound = ( cst.c * (u.m/u.s)  / (np.asarray(upper_bounds) * u.Hz)  ).to(u.um)
         
-        Snu_arr, nu_obs_sed_Hz, channels_list = gen_Snu_arr_filter(lambda_list.value, 
-                                                                     lambda_lower_bound.value,  
-                                                                     lambda_upper_bound.value, 
+        Snu_arr, sed_Jy, nu_obs_Hz = gen_Snu_arr_filter((lambda_lower_bound.min(), lambda_upper_bound.max()), 
                                                                      SED_dict, cat["redshift"], 
                                                                      cat['mu']*cat["LIR"], cat["Umean"], 
                                                                      cat["Dlum"], cat["issb"])
