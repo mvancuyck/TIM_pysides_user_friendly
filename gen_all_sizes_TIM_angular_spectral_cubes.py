@@ -100,6 +100,8 @@ if __name__ == "__main__":
             cat = Table.read(TIM_params["sides_cat_path"]+cfile)
             cat = cat.to_pandas()
 
+            cat = cat[:100]
+
             for zrange in ('highz', 'lowz', 'midz'):
 
 
