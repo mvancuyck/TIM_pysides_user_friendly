@@ -106,17 +106,12 @@ def gen_Snu_arr_filter(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     #source_id_list = []
     bar = Bar('Generates the SEDs', max=len(Uindex))
     for j,k in enumerate(Uindex):
-
-        mask = np.logical_and(SED_dict["lambda"][:, np.newaxis]>= lambda_rest[0], SED_dict[stype[j]][k][:, np.newaxis] <= lambda_rest[1])
-        
-        valid_points = mask.any(axis=1)  # True for x values inside any interval
-
+        mask = np.where((SED_dict["lambda"]>= lambda_rest[j,0]) & (SED_dict["lambda"] <= lambda_rest[j,1]))
+        #valid_points = mask.any(axis=1)  # True for x values inside any interval
         # Filter x and y values in a vectorized way
-        lambda_rest_sed.append( SED_dict["lambda"][valid_points] )
-        nuLnu_list.append( SED_dict[stype[j]][k][valid_points] )
-        embed()
+        lambda_rest_sed.append( SED_dict["lambda"][mask] )
+        nuLnu_list.append( SED_dict[stype[j]][k][mask] )
         #source_id_list.append(j*np.ones(len(interval_idx[valid_points])))
-
         #nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
         bar.next()
     bar.finish
