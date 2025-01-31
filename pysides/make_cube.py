@@ -229,7 +229,7 @@ def save_cubes(cube_input, cube_prop_dict, params_sides, params, component_name,
     
     return cubes_dict
 
-def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=False):
+def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=False,spc=10):
 
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
@@ -244,28 +244,19 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=Fal
         sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma
         lower_bounds = channels - params['freq_width_in_sigma']/2 * sigma 
         upper_bounds = channels + params['freq_width_in_sigma']/2 * sigma 
-        freq_list = np.linspace(lower_bounds.min(), upper_bounds.max(), 10*len(channels) )
+        freq_list = np.linspace(lower_bounds.min(), upper_bounds.max(), spc*len(channels) )
         lambda_list = ( cst.c * (u.m/u.s)  / (np.asarray(freq_list) * u.Hz)  ).to(u.um).value
         
-
     Snu_arr = gen_Snu_arr(lambda_list, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
 
     if(filter):
 
         mask = (freq_list[:,np.newaxis] >= lower_bounds) & (freq_list[:,np.newaxis] < upper_bounds)
         transmission = np.exp(-((freq_list[:,np.newaxis]- channels) ** 2) / (2 * (sigma)**2)) 
-        Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * mask.astype(int)#* transmission 
+        Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * mask.astype(int)* transmission 
         freq_transmitted = freq_list[:,np.newaxis]*mask
-
-        Snu_transmitted = np.sum(Snu_arr_transmitted  * mask.astype(int), axis=1)
-
-        embed()
-        #for f,channel in enumerate(channels):
-
-        if((len(cube_prop_dict['pos'][0]) != len(freq_obs)*cube_prop_dict['shape'][0]) or (len(cube_prop_dict['pos'][1]) != len(freq_obs)*cube_prop_dict['shape'][0])):
-            x_flat = np.repeat(cube_prop_dict['pos'][1], cube_prop_dict['shape'][0])  # Repeat each source position
-            y_flat = np.repeat(cube_prop_dict['pos'][0], cube_prop_dict['shape'][0])
-            cube_prop_dict['pos'] = (y_flat, x_flat)
+        Snu_transmitted = np.sum(Snu_arr_transmitted , axis=1)
+        Snu_arr = Snu_arr_transmitted
             
     return Snu_arr
 
@@ -278,6 +269,8 @@ def make_continuum_cube(cat, params_sides, params, cube_prop_dict, filter=False)
         row = channels_flux_densities[:,f] #Jy/pix
         histo, y_edges, x_edges = np.histogram2d(cube_prop_dict['pos'][0], cube_prop_dict['pos'][1], bins=(cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=row)
         continuum_nobeam_Jypix.append(histo) #Jy/pix, no beam
+
+    embed()
 
     continuum_cubes = save_cubes(np.asarray(continuum_nobeam_Jypix), cube_prop_dict, params_sides, params, 'continuum', just_compute = not params['save_continuum_only'])
     
