@@ -117,6 +117,7 @@ def gen_Snu_arr_filter(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     bar.finish
 
     embed()
+    
     nu_rest_sed_Hz = (cst.c) / (np.asarray(lambda_rest_sed)*1e-6) #* ( 1 + np.array(redshift)[:,np.newaxis])
     nu_obs_sed_Hz  = nu_rest_sed_Hz / ( 1 + np.array(redshift)[:,np.newaxis])
     nuLnu = np.asarray(nuLnu_list) / np.asarray(nu_rest_sed_Hz)
