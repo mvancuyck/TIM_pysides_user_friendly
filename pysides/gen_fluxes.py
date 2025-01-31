@@ -114,6 +114,7 @@ def gen_Snu_arr_filter(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
         # Filter x and y values in a vectorized way
         lambda_rest_sed.append( SED_dict["lambda"][valid_points] )
         nuLnu_list.append( SED_dict[stype[j]][k][valid_points] )
+        embed()
         #source_id_list.append(j*np.ones(len(interval_idx[valid_points])))
 
         #nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
