@@ -265,6 +265,7 @@ def make_continuum_cube(cat, params_sides, params, cube_prop_dict, filter=False)
     continuum_nobeam_Jypix = []
 
     channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, params, filter=filter)
+    embed()
     for f in range(0, cube_prop_dict['shape'][0]):      
         row = channels_flux_densities[:,f] #Jy/pix
         histo, y_edges, x_edges = np.histogram2d(cube_prop_dict['pos'][0], cube_prop_dict['pos'][1], bins=(cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=row)
