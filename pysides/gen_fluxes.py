@@ -87,7 +87,7 @@ def gen_fluxes(cat, params):
 
     return cat
 
-def gen_Snu_arr_filter(lambda_list, lower_bounds, upper_bounds, SED_dict, redshift, LIR, Umean, Dlum, issb):
+def gen_Snu_arr_filter(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
     start_time = time.time()
 
@@ -99,9 +99,7 @@ def gen_Snu_arr_filter(lambda_list, lower_bounds, upper_bounds, SED_dict, redshi
     Uindex = np.minimum(Uindex, np.size(SED_dict["Umean"]) - 1)
 
     lambda_rest = lambda_list / (1 + np.array(redshift)[:, np.newaxis]) * u.um #lambda list is in micron!
-    lower_bounds_rest = lower_bounds / (1 + np.array(redshift)[:, np.newaxis]) * u.um 
-    upper_bounds_rest = upper_bounds / (1 + np.array(redshift)[:, np.newaxis]) * u.um 
-
+    
     lambda_rest_sed = [] 
     nuLnu_list = [] #np.zeros([len(redshift), len(lambda_list)])
     filtered_intervals_list = []
@@ -109,16 +107,13 @@ def gen_Snu_arr_filter(lambda_list, lower_bounds, upper_bounds, SED_dict, redshi
     bar = Bar('Generates the SEDs', max=len(Uindex))
     for j,k in enumerate(Uindex):
 
-        mask = np.logical_and(SED_dict["lambda"][:, np.newaxis]>= lower_bounds, SED_dict[stype[j]][k][:, np.newaxis] <= upper_bounds)
+        mask = np.logical_and(SED_dict["lambda"][:, np.newaxis]>= lambda_rest[0], SED_dict[stype[j]][k][:, np.newaxis] <= lambda_rest[1])
         
-        # Identify which interval each x belongs to
-        interval_idx = np.argmax(mask, axis=1)  # Index of the first True in each row
         valid_points = mask.any(axis=1)  # True for x values inside any interval
 
         # Filter x and y values in a vectorized way
         lambda_rest_sed.append( SED_dict["lambda"][valid_points] )
         nuLnu_list.append( SED_dict[stype[j]][k][valid_points] )
-        filtered_intervals_list.append( interval_idx[valid_points] )# Interval index for each point 
         #source_id_list.append(j*np.ones(len(interval_idx[valid_points])))
 
         #nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
@@ -135,7 +130,7 @@ def gen_Snu_arr_filter(lambda_list, lower_bounds, upper_bounds, SED_dict, redshi
 
     print("Generated SEDs in %s minutes ---" % np.round((time.time() - start_time)/60,2))
 
-    return Snu_arr, nu_obs_sed_Hz, np.asarray(filtered_intervals_list)#, np.asarray(source_id_list)
+    return Snu_arr, nu_obs_sed_Hz #np.asarray(filtered_intervals_list)#, np.asarray(source_id_list)
 
 ### Add fluxes allows to add some wavelnegth a posteriori
 
@@ -184,10 +179,6 @@ def add_fluxes(cat, params, new_lambda):
     return cat
 
 ###routine to compute Snu_arr, can be used outside of the catalog generation to produce intensity mapping cubes on the fly without filling the memery with hundreds of wavelengths in un the catalog
-
-
-# Generate LFIR
-
 
 def gen_LFIR_vec(LIR_LFIR_ratio_dict, redshift, LIR, Umean, issb):
 
