@@ -236,7 +236,6 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=Fal
     channels = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
     print("Generate CONCERTO monochromatic fluxes...")
-    embed()
     if(not filter): lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um).value
     else:
 
