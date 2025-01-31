@@ -116,6 +116,7 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     Numerator = Lnu * ( 1 + np.array(redshift)[:,np.newaxis]) * (1/ (np.pi *  4 ))
     Denominator = ((np.asarray(Dlum) * u.Mpc).to(u.m)) ** 2
     Snu_arr = ( Numerator / Denominator[:, np.newaxis] ).to(u.Jy)
+    print('')
     print("Generated SEDs in %s minutes ---" % np.round((time.time() - start_time)/60,2))
 
     return Snu_arr  
