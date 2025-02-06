@@ -114,6 +114,6 @@ if __name__ == "__main__":
                 for profile in ('gaussian','lorentzian'):
                     TIM_params['profile'] = profile
 
-                    TIM_params['run_name'] = f"pySIDES_from_uchuu_{profile}_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
+                    TIM_params['run_name'] = f"pySIDES_from_uchuu_{profile}_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_minus{TIM_params['diff_btw_freq_resol_and_fwhm']/1e9:.1f}GHz_forfwhm"
                     file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
                     if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
