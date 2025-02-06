@@ -17,7 +17,7 @@ freq_min = 955e9 #Hz
 freq_max = 1005e9 #Hz
 freq_list = [4.5e9,4e9,3.5e9,3.0e9] #Hz
 freq_width_in_fwhm = 4 
-diff_btw_freq_resol_and_fwhm = 0.5e9 #Hz, such as freq_resol - fwhm used when spectral profile = diff_btw_freq_resol_and_fwhm 
+diff_btw_freq_resol_and_fwhm = 0e9 #Hz, such as freq_resol - fwhm used when spectral profile = diff_btw_freq_resol_and_fwhm 
 spf = 10 #sample per filter, Used in the generation of filtered continuum fluxes.
 profile = 'tophat' #'gaussian', 'lorentzian'
 
