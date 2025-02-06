@@ -8,8 +8,8 @@ Nmax=120
 sides_cat_path  = "/net/CONCERTO/home/mvancuyck/full_mmCOLIM/outputs_cubes/"
 pixel_size = 20 #arcsec
 
-tile_sizes = [(117, 1,1),(120, 0.2,1) ] #,(70, 1.225,1.225)
-tile_size =  [    ( 1,1),    ( 0.2,1) ] #,   ( 1.225,1.225)
+tile_sizes = [(54,1.414, 1.414), (117, 1,1),(120, 0.2,1) ] #,(70, 1.225,1.225)
+tile_size =  [   (1.414, 1.414),     ( 1,1),    ( 0.2,1) ] #,   ( 1.225,1.225)
 
 #Instrument's parameters
 
@@ -17,11 +17,12 @@ freq_min = 1200e9 #Hz
 freq_max = 1250e9 #Hz
 freq_list = [4.5e9,4e9,3.5e9,3.0e9] #Hz
 freq_resol = 4e9
-freq_width_in_sigma = 6 # where sigma = gaussian_fwhm_to_sigma * freq_resol
-
+freq_width_in_sigma = 4 # where sigma = gaussian_fwhm_to_sigma * freq_resol
+spf = 10 #sample per filter, Used in the generation of filtered continuum fluxes.
+profile = 'tophat' #'gaussian', 'lorentzian'
 
 Mstar_lim= 1e10
-telescop_diameter = 1.9 #m 
+telescop_diameter = 1.9 #m
 
 #3D cubes parameters
 z_centers = (0.64,0.90,1.18,1.5)
@@ -44,9 +45,9 @@ gen_cube_CII_Lagache  = False
 #Choose the cubes to save
 save_each_transition  = False	#save the cubes for each tranistion (CO10, CO21, [CI]10, [CI]21...)
 save_each_line 	= True 	#save the cubes for each line (CO, [CI], [CII])
-save_continuum_only   = True	#save the cube(s) with only continuum
+save_continuum_only   = False	#save the cube(s) with only continuum
 save_all_lines	      = True	#save the cube(s) with all the lines
-save_full 	      = True	#save the full cube(s) with everything
+save_full 	      = False	#save the full cube(s) with everything
 save_galaxies = True
 
 

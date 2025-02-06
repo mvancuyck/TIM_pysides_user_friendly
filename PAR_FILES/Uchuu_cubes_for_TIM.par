@@ -11,14 +11,15 @@ sides_cat_path  = "OUTPUT_TIM_CUBES_FROM_UCHUU/"
 
 pixel_size = 20 #arcsec
 
-tile_size =  [    (1.414, 1.414),      (1,1),     (0.2,1),      (0.45,0.45)  ,    (1.225,1.225) ] #120  
-tile_sizes = [(54 ,1.414, 1.414), (117, 1,1),(120, 0.2,1), (120, 0.45,0.45) , (70, 1.225,1.225)] #,
+tile_size = [(1.414, 1.414), (1,1), (0.2,1), (0.45,0.45)   ] #120  (1.225,1.225)
+tile_sizes = [(54,1.414, 1.414), (117, 1,1),(120, 0.2,1) ] #,(70, 1.225,1.225)
 
 freq_min = 715e9 #Hz
 freq_max = 1250e9 #Hz
 freq_resol = 4e9 #Hz
-freq_width_in_sigma = 6 # where sigma = gaussian_fwhm_to_sigma * freq_resol
-
+freq_width_in_sigma = 4 # where sigma = gaussian_fwhm_to_sigma * freq_resol
+spf = 10 #sample per filter, Used in the generation of filtered continuum fluxes.
+profile = 'tophat' #'gaussian', 'lorentzian'
 
 Mstar_lim= 1e10
 
