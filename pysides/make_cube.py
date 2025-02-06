@@ -246,16 +246,16 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='t
         lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um).value
     else:
         # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
-        fwhm = w.wcs.cdelt[2] # Frequency resolution (step between consecutive channels)
-        lower_bounds = channels - params['freq_width_in_sigma']/2 * fwhm 
-        upper_bounds = channels + params['freq_width_in_sigma']/2 * fwhm 
+        fwhm = w.wcs.cdelt[2] - params['diff_btw_freq_resol_and_fwhm'] # Frequency resolution (step between consecutive channels)
+        lower_bounds = channels - params['freq_width_in_fwhm']/2 * fwhm
+        upper_bounds = channels + params['freq_width_in_fwhm']/2 * fwhm
         freq_list = np.linspace(lower_bounds.min(), upper_bounds.max(), params['spc']*len(channels) )
         dnu = np.diff(freq_list).mean()
         lambda_list = ( cst.c * (u.m/u.s)  / (np.asarray(freq_list) * u.Hz)  ).to(u.um).value
         
     Snu_arr = gen_Snu_arr(lambda_list, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
 
-    if profile is not 'tophat':
+    if profile != 'tophat':
 
         mask = (freq_list[:,np.newaxis] >= lower_bounds) & (freq_list[:,np.newaxis] < upper_bounds)
         #-----------
@@ -391,9 +391,9 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
     freq_list = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
     
     # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
-    fwhm = w.wcs.cdelt[2] # Frequency resolution (step between consecutive channels)
-    lower_bounds = freq_list - params['freq_width_in_sigma']/2 * fwhm
-    upper_bounds = freq_list + params['freq_width_in_sigma']/2 * fwhm
+    fwhm = w.wcs.cdelt[2] - params['diff_btw_freq_resol_and_fwhm']  # Frequency resolution (step between consecutive channels)
+    lower_bounds = freq_list - params['freq_width_in_fwhm']/2 * fwhm
+    upper_bounds = freq_list + params['freq_width_in_fwhm']/2 * fwhm
     profile = params['profile']
     assert profile in ['tophat', 'gaussian', 'lorentzian']
 
