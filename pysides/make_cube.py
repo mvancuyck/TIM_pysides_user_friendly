@@ -30,6 +30,7 @@ def set_wcs(cat,params):
 
     #-----------------SET WCS-----------------
     # Coordinate increment at reference point
+
     if ((not "ra" in cat.columns) or (not "dec" in cat.columns)):
         print("generating the coordinates of the sources")
         ra,dec = gen_radec(cat, params )
@@ -229,48 +230,55 @@ def save_cubes(cube_input, cube_prop_dict, params_sides, params, component_name,
     
     return cubes_dict
 
-def channel_flux_densities(cat, params_sides, cube_prop_dict, params, filter=False,spc=10):
+def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='tophat', max_delta_nu_in_ghz_for_flat_cib_assumption = 20.):
 
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
     channels = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
     print("Generate CONCERTO monochromatic fluxes...")
-    if(not filter): lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um).value
-    else:
 
+    delta_nu_channel_in_ghz = np.diff(channels)[0]/1e9
+    if delta_nu_channel_in_ghz>=max_delta_nu_in_ghz_for_flat_cib_assumption:
+        assert profile is not None
+
+    if profile is 'tophat': 
+        lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um).value
+    else:
         # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
-        fwhm = w.wcs.cdelt[2] * gaussian_fwhm_to_sigma # Frequency resolution (step between consecutive channels)
-        sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma
-        lower_bounds = channels - params['freq_width_in_sigma']/2 * sigma 
-        upper_bounds = channels + params['freq_width_in_sigma']/2 * sigma 
-        freq_list = np.linspace(lower_bounds.min(), upper_bounds.max(), spc*len(channels) )
+        fwhm = w.wcs.cdelt[2] # Frequency resolution (step between consecutive channels)
+        lower_bounds = channels - params['freq_width_in_sigma']/2 * fwhm 
+        upper_bounds = channels + params['freq_width_in_sigma']/2 * fwhm 
+        freq_list = np.linspace(lower_bounds.min(), upper_bounds.max(), params['spc']*len(channels) )
+        dnu = np.diff(freq_list).mean()
         lambda_list = ( cst.c * (u.m/u.s)  / (np.asarray(freq_list) * u.Hz)  ).to(u.um).value
         
     Snu_arr = gen_Snu_arr(lambda_list, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
 
-    if(filter):
+    if profile is not 'tophat':
 
         mask = (freq_list[:,np.newaxis] >= lower_bounds) & (freq_list[:,np.newaxis] < upper_bounds)
-        transmission = np.exp(-((freq_list[:,np.newaxis]- channels) ** 2) / (2 * (sigma)**2)) 
+        #-----------
+        transmission = get_profile_transmission(channels, freq_list, fwhm, profile = profile)
+        #-----------
         Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * mask.astype(int)* transmission 
-        freq_transmitted = freq_list[:,np.newaxis]*mask
-        Snu_transmitted = np.sum(Snu_arr_transmitted , axis=1)
+        #freq_transmitted = freq_list[:,np.newaxis]*mask
+        Snu_transmitted = np.sum(Snu_arr_transmitted , axis=1) * dnu # To double check !!
         Snu_arr = Snu_transmitted
             
     return Snu_arr
 
-def make_continuum_cube(cat, params_sides, params, cube_prop_dict, filter=False):
+def make_continuum_cube(cat, params_sides, params, cube_prop_dict, filter='tophat'):
+
 
     continuum_nobeam_Jypix = []
 
-    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, params, filter=filter)
+    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, filter=filter)
+
     for f in range(0, cube_prop_dict['shape'][0]):      
         row = channels_flux_densities[:,f] #Jy/pix
         histo, y_edges, x_edges = np.histogram2d(cube_prop_dict['pos'][0], cube_prop_dict['pos'][1], bins=(cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=row)
         continuum_nobeam_Jypix.append(histo) #Jy/pix, no beam
-
-    embed()
 
     continuum_cubes = save_cubes(np.asarray(continuum_nobeam_Jypix), cube_prop_dict, params_sides, params, 'continuum', just_compute = not params['save_continuum_only'])
     
@@ -287,10 +295,79 @@ def line_channel_flux_densities(line, rest_freq, cat, cube_prop_dict):
     
     return S, channel
 
-def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
+def get_profile_transmission(freq_obs, freq_list, fwhm, profile = 'tophat'):
+    """
+    Return the value of the filter profile for each source in all the LIM bands.
+
+    Parameters:
+    freq_obs: array        
+        Observed freqeuency of each source.
+        Dimension is nsources x 1.
+    freq_list: array
+        LIM band centres in GHz.
+    fwhm: float
+        Single FWHM for the above bands in GHz.
+    profile: str
+        Bandpass profile.
+        Default is tophat.
+        Must be one of the following:
+        ['tophat', 'gaussian', 'lorentzian']
+
+    Returns:
+    transmission: array
+        Filter values for each source in each band.
+        Dimension is nsources x nabnds.
+
+    """
+    assert profile in ['tophat', 'gaussian', 'lorentzian']
+
+    if freq_obs[0]>1e3: #convert to GHz, if need be.
+        freq_obs = freq_obs / 1e9
+    if freq_list[0]>1e3: #convert to GHz, if need be.
+        freq_list = freq_list / 1e9
+    if fwhm>1e3: #convert to GHz, if need be.
+        fwhm = fwhm / 1e9
+
+    sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma ##!!!!
+
+    if profile == 'gaussian': #Gaussian spectral profile
+        transmission = np.exp(-((freq_obs[:, None] - freq_list/1e9) ** 2) / (2 * (sigma/1e9)**2))
+    elif profile == 'tophat':  #tophat
+        channel_inds_for_each_source = np.argmin( abs(freq_obs[:, None]-freq_list/1e9), axis = 1 )
+        transmission = np.zeros( (nsources, len(freq_list)) ) ##!!!!
+        transmission[:, channel_inds_for_each_source] = 1.
+    elif profile == 'lorentzian':  #lorentzian
+        t1 = 1. #np.pi * fwhm/1e9
+        t2 = 1 + ( (freq_obs[:, None] - freq_list/1e9) / fwhm/1e9 )**2.
+        transmission = 1 / (t1 * t2)
+
+    return transmission
+
+def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
+
     """
     Find the overlapping spectral channels for an array of observed frequencies.
 
+    Parameters:
+    line: str        
+        CO line of interest. 
+        Must be one of the following:
+        ['CO10', 'CO21', 'CO32', 'CO43', 'CO54', 'CO65', 'CO76', 'CO87', 'CII_de_Looze', 'CI10', 'CI21', 'SSB']
+    rest_freq: float
+        Rest freqeuency in GHz.
+    cat: pandas data frame
+        source catagloue containining a lot of details. (srini: Fix this.)
+    cube_prop_dict: dict
+        cube_prop_dict containining a lot of details. (srini: Fix this.)
+    params: dict
+        dictionary containing parameters
+
+    Returns:
+    Snu_flat:
+
+    channels_flat:
+
+    '''old docstring commented out.
     Parameters:
     - w : astropy.wcs.WCS
         The WCS object with a frequency axis.
@@ -304,19 +381,22 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
     Returns:
     - list of lists of int
         List of indices of channels for each frequency in `f_obs_array`.
+    '''
     """
+
+    assert line in ['CO10', 'CO21', 'CO32', 'CO43', 'CO54', 'CO65', 'CO76', 'CO87', 'CII_de_Looze', 'CI10', 'CI21', 'SSB'] 
 
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
     freq_list = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
     
     # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
-    fwhm = w.wcs.cdelt[2] * gaussian_fwhm_to_sigma # Frequency resolution (step between consecutive channels)
-    sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma
-    lower_bounds = freq_list - params['freq_width_in_sigma']/2 * sigma 
-    upper_bounds = freq_list + params['freq_width_in_sigma']/2 * sigma 
+    fwhm = w.wcs.cdelt[2] # Frequency resolution (step between consecutive channels)
+    lower_bounds = freq_list - params['freq_width_in_sigma']/2 * fwhm
+    upper_bounds = freq_list + params['freq_width_in_sigma']/2 * fwhm
+    profile = params['profile']
+    assert profile in ['tophat', 'gaussian', 'lorentzian']
 
-    #test_indices = [89938, 1388638, 10271987]
     freq_obs = np.asarray(rest_freq / (1 + cat['redshift']) )#GHz
     nudelt = abs(cube_prop_dict['w'].wcs.cdelt[2]) / 1e9 #GHz
     vdelt = (cst.c * 1e-3) * nudelt / freq_obs #km/s
@@ -326,11 +406,8 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
     mask = (freq_obs[:, np.newaxis] >= lower_bounds/1e9) & (freq_obs[:, np.newaxis] < upper_bounds/1e9)
     channels_list = np.where(mask, np.arange(len(freq_list)), -2)
     #----
-    #Gaussian spectral profile
-    transmission = np.exp(-((freq_obs[:, np.newaxis] - freq_list/1e9) ** 2) / (2 * (sigma/1e9)**2)) 
-
-    #Lorentz spectral profile 
-    #transmission = 1/(((freq_obs[:, np.newaxis]-freq_list/1e9)/(fwhm/1e9/2))**2 + 1 )
+    fwhm = w.wcs.cdelt[2] # Frequency resolution (step between consecutive channels)
+    transmission = get_profile_transmission(freq_obs, freq_list, fwhm, profile = profile)
     #----
     Snu_transmitted = Snu[:,np.newaxis] * transmission * mask.astype(int)
     # Get indices of overlapping channels for each freq_obs
@@ -350,7 +427,7 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict,params):
 
     return Snu_flat, channels_flat
 
-def make_co_cube(cat, params_sides, params, cube_prop_dict,filter=False):
+def make_co_cube(cat, params_sides, params, cube_prop_dict,filter='tophat'):
 
     #Create the cube for each line, save it and add it to the lines cube
     first_Jup = 1
@@ -360,7 +437,7 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict,filter=False):
         line_name = "CO{}{}".format(J, J - 1)
         print('Compute channel locations and flux densities of '+line_name+' lines...')
         rest_freq = params_sides["nu_CO"] * J 
-        if(not filter): Snu, channels = line_channel_flux_densities(line_name, rest_freq, cat, cube_prop_dict)
+        if(filter=='tophat'): Snu, channels = line_channel_flux_densities(line_name, rest_freq, cat, cube_prop_dict)
         else: Snu, channels = line_filter_flux_densities(line_name, rest_freq, cat, cube_prop_dict, params)
 
         print('Generate the non-smoothed '+line_name+' cube...')
@@ -380,10 +457,10 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict,filter=False):
 
     return CO_all_cubes 
 
-def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation,filter=False):
+def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation,filter='tophat'):
 
     print('Compute channel locations and flux densities of [CII] line ('+name_relation+'et al.  recipe)...')
-    if(not filter): Snu, channels = line_channel_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict)
+    if(filter=='tophat'): Snu, channels = line_channel_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict)
     else: Snu, channels = line_filter_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict, params)
     
     print('Generate the non-smoothed [CII] cube...')
@@ -393,19 +470,18 @@ def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation,filte
 
     return CII_cubes
 
-def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict,filter=False):
+def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict,filter='tophat'):
 
     first_loop = True
 
     for line_name, line_nu in zip(params_sides['fir_lines_list'], params_sides['fir_lines_nu']):
         print('Compute channel locations and flux densities of ['+line_name+'] lines...')
-        if(not filter): Snu, channels = line_channel_flux_densities(line_name, line_nu, cat, cube_prop_dict)
+        if(filter=='tophat'): Snu, channels = line_channel_flux_densities(line_name, line_nu, cat, cube_prop_dict)
         else: Snu, channels = line_filter_flux_densities(line_name, line_nu, cat, cube_prop_dict, params)
         print('Generate the non-smoothed ['+line_name+'] cube...')
         FIR_1line_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
 
         FIR_1line_cubes = save_cubes(FIR_1line_nobeam_Jypix, cube_prop_dict, params_sides, params, line_name, just_compute = not params['save_each_line'])
-
     
         if first_loop:
             FIR_lines_cubes = deepcopy(FIR_1line_cubes)
@@ -422,7 +498,7 @@ def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict,filter=False):
     
     return FIR_lines_cubes
 
-def make_ci_cube(cat, params_sides, params, cube_prop_dict, filter=False):
+def make_ci_cube(cat, params_sides, params, cube_prop_dict, filter='tophat'):
 
     line_names = ['CI10', 'CI21']
 
@@ -431,7 +507,7 @@ def make_ci_cube(cat, params_sides, params, cube_prop_dict, filter=False):
     for line_name in line_names:
     
         print('Compute channel locations and flux densities of ['+line_name+'] lines...')
-        if(not filter): Snu, channels = line_channel_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict)
+        if(filter == 'tophat'): Snu, channels = line_channel_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict)
         else: Snu, channels = line_filter_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict, params)
         
         print('Generate the non-smoothed ['+line_name+'] cube...')
@@ -453,8 +529,7 @@ def make_ci_cube(cat, params_sides, params, cube_prop_dict, filter=False):
 
     return CI_both_cubes
 
-def make_cube(cat ,params_sides, params_cube,filter=False):
-
+def make_cube(cat ,params_sides, params_cube):
 
     print("Set World Coordinates System...")
     cube_prop_dict = set_wcs(cat, params_cube)
@@ -463,16 +538,16 @@ def make_cube(cat ,params_sides, params_cube,filter=False):
     if params_cube['gen_cube_smoothed_Jy_beam'] or params_cube['gen_cube_smoothed_MJy_sr']:
         print("Compute the beams for all channels...")
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
-    
+        
     print("Create continuum cubes..")                                                                              
     if(params_cube['save_continuum_only'] or params_cube['save_full']): 
-        continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
+        continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
 
     print("Create CO cubes...")
-    CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
+    CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
 
     print("Create CI cubes...")
-    CI_cubes = make_ci_cube(cat, params_sides, params_cube, cube_prop_dict, filter=filter)
+    CI_cubes = make_ci_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
 
     CII_relations_2compute = []
 
@@ -488,7 +563,7 @@ def make_cube(cat ,params_sides, params_cube,filter=False):
         FIR_lines_cubes = make_fir_lines_cube(cat, params_sides, params_cube, cube_prop_dict)
     '''
     for CII_relation_name in CII_relations_2compute:
-        CII_cubes = make_cii_cube(cat, params_sides, params_cube, cube_prop_dict, CII_relation_name, filter=filter)
+        CII_cubes = make_cii_cube(cat, params_sides, params_cube, cube_prop_dict, CII_relation_name, filter=params_cube['profile'])
 
         #Compute and save the combined cubes
 
