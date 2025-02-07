@@ -249,7 +249,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='t
         fwhm = w.wcs.cdelt[2] - params['diff_btw_freq_resol_and_fwhm'] # Frequency resolution (step between consecutive channels)
         lower_bounds = channels - params['freq_width_in_fwhm']/2 * fwhm
         upper_bounds = channels + params['freq_width_in_fwhm']/2 * fwhm
-        freq_list = np.linspace(lower_bounds.min(), upper_bounds.max(), params['spc']*len(channels) )
+        freq_list = np.linspace(lower_bounds.min(), upper_bounds.max(), params['spf']*len(channels) )
         dnu = np.diff(freq_list).mean()
         lambda_list = ( cst.c * (u.m/u.s)  / (np.asarray(freq_list) * u.Hz)  ).to(u.um).value
         
