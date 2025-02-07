@@ -261,6 +261,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='t
         #-----------
         transmission = get_profile_transmission(channels, freq_list, fwhm, profile = profile)
         #-----------
+        embed()
         Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * mask.astype(int)* transmission 
         #freq_transmitted = freq_list[:,np.newaxis]*mask
         Snu_transmitted = np.sum(Snu_arr_transmitted , axis=1) * dnu # To double check !!
