@@ -328,6 +328,8 @@ def get_profile_transmission(freq_obs, freq_list, fwhm, profile = 'tophat'):
     if fwhm>1e3: #convert to GHz, if need be.
         fwhm = fwhm / 1e9
 
+    embed()
+
     sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma ##!!!!
 
     if profile == 'gaussian': #Gaussian spectral profile
