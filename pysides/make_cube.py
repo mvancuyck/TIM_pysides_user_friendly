@@ -330,6 +330,8 @@ def get_profile_transmission(freq_obs, freq_list, fwhm, profile = 'tophat'):
 
     sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma ##!!!!
 
+    embed()
+
     if profile == 'gaussian': #Gaussian spectral profile
         transmission = np.exp(-((freq_obs[:, None] - freq_list/1e9) ** 2) / (2 * (sigma/1e9)**2))
     elif profile == 'tophat':  #tophat
