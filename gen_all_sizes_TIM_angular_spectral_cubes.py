@@ -102,7 +102,6 @@ if __name__ == "__main__":
             #Load the catalog of the subfield
             cat = Table.read(TIM_params["sides_cat_path"]+cfile)
             cat = cat.to_pandas()
-            cat = cat[:30]
 
             for zrange in ('highz', 'lowz', 'midz'):
                 TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{zrange}.par')
