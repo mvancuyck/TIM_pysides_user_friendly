@@ -104,7 +104,7 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     lambda_rest = lambda_list / (1 + np.array(redshift)[:, np.newaxis]) * u.um #lambda list is in micron!
     nu_rest_Hz = (cst.c * u.m/u.s) / lambda_rest.to(u.m)
     nuLnu     = np.zeros([len(redshift), len(lambda_list)])
-    bar = Bar('Generates the SEDs', max=len(Uindex))
+    bar = Bar('Generate the SEDs', max=len(Uindex))
 
     for j,k in enumerate(Uindex):
         nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
