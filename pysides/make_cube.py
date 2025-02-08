@@ -330,17 +330,15 @@ def get_profile_transmission(freq_obs, freq_list, fwhm, profile = 'tophat'):
 
     sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma ##!!!!
 
-    embed()
-
     if profile == 'gaussian': #Gaussian spectral profile
-        transmission = np.exp(-((freq_obs[:, None] - freq_list/1e9) ** 2) / (2 * (sigma/1e9)**2))
+        transmission = np.exp(-((freq_obs[:, None] - freq_list) ** 2) / (2 * (sigma)**2))
     elif profile == 'tophat':  #tophat
-        channel_inds_for_each_source = np.argmin( abs(freq_obs[:, None]-freq_list/1e9), axis = 1 )
+        channel_inds_for_each_source = np.argmin( abs(freq_obs[:, None]-freq_list), axis = 1 )
         transmission = np.zeros( (nsources, len(freq_list)) ) ##!!!!
         transmission[:, channel_inds_for_each_source] = 1.
     elif profile == 'lorentzian':  #lorentzian
         t1 = 1. #np.pi * fwhm/1e9
-        t2 = 1 + ( (freq_obs[:, None] - freq_list/1e9) / fwhm/1e9 )**2.
+        t2 = 1 + ( (freq_obs[:, None] - freq_list) / fwhm )**2.
         transmission = 1 / (t1 * t2)
 
     return transmission
