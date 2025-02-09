@@ -463,7 +463,6 @@ def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation,filte
     
     print('Generate the non-smoothed [CII] cube...')
     CII_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
-    embed()
 
     CII_cubes = save_cubes(CII_nobeam_Jypix, cube_prop_dict, params_sides, params, 'CII_'+name_relation, just_compute = not params['save_each_line'])
 
