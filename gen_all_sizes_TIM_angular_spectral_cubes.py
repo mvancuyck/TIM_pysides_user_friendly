@@ -75,7 +75,7 @@ def make_all_cubes(cat,params_sides, ncpus=24):
     for profile in profiles:
         for range in zrange:
             #for diff_nu in diff_nu_list:
-            params_list.append(profile, range, 0)
+            params_list.append(list((profile,range,0 )))
 
     print("start parallelization")
     with Pool(ncpus, initializer=worker_init, initargs=list((cat, ))) as p:
