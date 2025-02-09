@@ -47,7 +47,7 @@ def sorted_files_by_n(directory, tile_sizes):
 
 def worker_compute(params):
     global _args
-    cat, params_sides, TIM_params = _args
+    cat, params_sides = _args
     for profile, range, diff_nu in params:  
 
         TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{range}.par')
@@ -78,7 +78,7 @@ def make_all_cubes(cat,params_sides, ncpus=24):
             params_list.append(list((profile,range,0 )))
 
     print("start parallelization")
-    with Pool(ncpus, initializer=worker_init, initargs=list((cat, ))) as p:
+    with Pool(ncpus, initializer=worker_init, initargs=list((cat, params_sides))) as p:
         zero = p.map(worker_compute, np.array_split(params_list, ncpus) )
     return 0   
 
