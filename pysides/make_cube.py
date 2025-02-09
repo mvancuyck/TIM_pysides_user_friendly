@@ -259,9 +259,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='t
 
         mask = (freq_list[:,np.newaxis] >= lower_bounds) & (freq_list[:,np.newaxis] < upper_bounds)
         #-----------
-        print('in cont')
-        embed()
-        transmission = get_profile_transmission(freq_list, channels, fwhm, profile = profile)
+        transmission = get_profile_transmission(freq_list/1e9, channels/1e9, fwhm/1e9, profile = profile)
         #-----------
         Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * mask.astype(int)* transmission 
         #freq_transmitted = freq_list[:,np.newaxis]*mask
@@ -322,14 +320,14 @@ def get_profile_transmission(freq_obs, freq_list, fwhm, profile = 'tophat'):
 
     """
     assert profile in ['tophat', 'gaussian', 'lorentzian']
-
+    '''
     if freq_obs[0]>1e3: #convert to GHz, if need be.
         freq_obs = freq_obs / 1e9
     if freq_list[0]>1e3: #convert to GHz, if need be.
         freq_list = freq_list / 1e9
     if fwhm>1e3: #convert to GHz, if need be.
         fwhm = fwhm / 1e9
-
+    '''
     sigma = fwhm * gaussian_fwhm_to_sigma # Convert FWHM to sigma ##!!!!
 
     if profile == 'gaussian': #Gaussian spectral profile
@@ -408,7 +406,7 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
     mask = (freq_obs[:, np.newaxis] >= lower_bounds/1e9) & (freq_obs[:, np.newaxis] < upper_bounds/1e9)
     channels_list = np.where(mask, np.arange(len(freq_list)), -2)
     #----
-    transmission = get_profile_transmission(freq_obs, freq_list/1e9, fwhm, profile = profile) #GHz, Hz
+    transmission = get_profile_transmission(freq_obs, freq_list/1e9, fwhm/1e9, profile = profile) #GHz, Hz
     #----
     Snu_transmitted = Snu[:,np.newaxis] * transmission * mask.astype(int)
     # Get indices of overlapping channels for each freq_obs
