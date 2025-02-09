@@ -10,6 +10,11 @@ from matplotlib.colors import LogNorm
 import matplotlib.patches as patches
 import re
 import glob
+from multiprocessing import Pool, cpu_count
+
+def worker_init(*args):
+    global _args
+    _args = args
 
 freq_CII = 1900.53690000 * u.GHz
 
@@ -40,6 +45,43 @@ def sorted_files_by_n(directory, tile_sizes):
     
     return sorted_files
 
+def worker_compute(params):
+    global _args
+    cat, params_sides, TIM_params = _args
+    for profile, range, diff_nu in params:  
+
+        TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{range}.par')
+
+        ##Generate the TIM cubes with params precised in TIM_params.par
+        TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{range}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
+        file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
+        if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
+
+        TIM_params['profile'] = profile
+        TIM_params['run_name'] = f"pySIDES_from_uchuu_{profile}_TIM_tile{l}_{range}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_minus{TIM_params['diff_btw_freq_resol_and_fwhm']/1e9:.1f}GHz_forfwhm"
+        file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
+        if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
+
+    return 0
+
+def make_all_cubes(cat,params_sides, ncpus=24):
+
+    profiles = ('gaussian','lorentzian')
+    zrange = ('highz', 'lowz', 'midz')
+    diff_nu_list = (0, 0.2e9, 0.4e9, 0.6e9, 0.8e9, 1e9)
+    
+    params_list = []
+    #for n in n_list:
+    for profile in profiles:
+        for range in zrange:
+            #for diff_nu in diff_nu_list:
+            params_list.append(profile, range, 0)
+
+    print("start parallelization")
+    with Pool(ncpus, initializer=worker_init, initargs=list((cat, ))) as p:
+        zero = p.map(worker_compute, np.array_split(params_list, ncpus) )
+    return 0   
+
 if __name__ == "__main__":
 
     params_sides = load_params('PAR_FILES/SIDES_from_original_with_fir_lines.par')
@@ -52,6 +94,7 @@ if __name__ == "__main__":
         files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
         
         for l, cfile in enumerate(files):
+
             
             #Generate the TIM cubes with params precised in TIM_params.par
             TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
@@ -103,18 +146,4 @@ if __name__ == "__main__":
             cat = Table.read(TIM_params["sides_cat_path"]+cfile)
             cat = cat.to_pandas()
 
-            for profile in ('gaussian','lorentzian'):
-
-                for zrange in ('highz', 'lowz', 'midz'):
-                    TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{zrange}.par')
-
-                    ##Generate the TIM cubes with params precised in TIM_params.par
-                    TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
-                    file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
-                    if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
-
-                    TIM_params['profile'] = profile
-
-                    TIM_params['run_name'] = f"pySIDES_from_uchuu_{profile}_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_minus{TIM_params['diff_btw_freq_resol_and_fwhm']/1e9:.1f}GHz_forfwhm"
-                    file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
-                    if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
+            make_all_cubes(cat,params_sides)
