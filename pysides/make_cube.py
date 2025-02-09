@@ -385,6 +385,7 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
     """
 
     assert line in ['CO10', 'CO21', 'CO32', 'CO43', 'CO54', 'CO65', 'CO76', 'CO87', 'CII_de_Looze', 'CI10', 'CI21', 'SSB'] 
+    if('CII' in line): embed()
 
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
