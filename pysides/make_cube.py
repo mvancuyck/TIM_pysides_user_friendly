@@ -259,6 +259,8 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='t
 
         mask = (freq_list[:,np.newaxis] >= lower_bounds) & (freq_list[:,np.newaxis] < upper_bounds)
         #-----------
+        print('in cont')
+        embed()
         transmission = get_profile_transmission(freq_list, channels, fwhm, profile = profile)
         #-----------
         Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * mask.astype(int)* transmission 
@@ -385,7 +387,6 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
     """
 
     assert line in ['CO10', 'CO21', 'CO32', 'CO43', 'CO54', 'CO65', 'CO76', 'CO87', 'CII_de_Looze', 'CI10', 'CI21', 'SSB'] 
-    if('CII' in line): embed()
 
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
@@ -407,8 +408,7 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
     mask = (freq_obs[:, np.newaxis] >= lower_bounds/1e9) & (freq_obs[:, np.newaxis] < upper_bounds/1e9)
     channels_list = np.where(mask, np.arange(len(freq_list)), -2)
     #----
-    fwhm = w.wcs.cdelt[2] # Frequency resolution (step between consecutive channels)
-    transmission = get_profile_transmission(freq_obs, freq_list, fwhm, profile = profile)
+    transmission = get_profile_transmission(freq_obs, freq_list/1e9, fwhm, profile = profile) #GHz, Hz
     #----
     Snu_transmitted = Snu[:,np.newaxis] * transmission * mask.astype(int)
     # Get indices of overlapping channels for each freq_obs
