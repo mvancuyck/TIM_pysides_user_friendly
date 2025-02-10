@@ -103,6 +103,7 @@ if __name__ == "__main__":
             if(not os.path.isfile(file) or True ):
 
                 #Load the catalog of the subfield
+                print(cfile)
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
             
