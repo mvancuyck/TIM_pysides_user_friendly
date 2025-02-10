@@ -380,12 +380,11 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
         List of indices of channels for each frequency in `f_obs_array`.
     '''
     """
-
     assert line in ['CO10', 'CO21', 'CO32', 'CO43', 'CO54', 'CO65', 'CO76', 'CO87', 'CII_de_Looze', 'CI10', 'CI21', 'SSB'] 
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
     freq_list = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0] / 1e9
-
+    #----
     freq_obs = np.asarray( rest_freq / (1 + cat['redshift']) )#GHz
     nudelt = abs(cube_prop_dict['w'].wcs.cdelt[2]) / 1e9 #GHz
     vdelt = (cst.c * 1e-3) * nudelt / freq_obs #km/s
@@ -400,7 +399,7 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
 
     return Snu_transmitted
 
-def make_co_cube(cat, params_sides, params, cube_prop_dict,filter='tophat'):
+def make_co_cube(cat, params_sides, params, cube_prop_dict):
 
     #Create the cube for each line, save it and add it to the lines cube
     first_Jup = 1
@@ -410,11 +409,19 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict,filter='tophat'):
         line_name = "CO{}{}".format(J, J - 1)
         print('Compute channel locations and flux densities of '+line_name+' lines...')
         rest_freq = params_sides["nu_CO"] * J 
-        if(filter=='tophat'): Snu, channels = line_channel_flux_densities(line_name, rest_freq, cat, cube_prop_dict)
-        else: Snu, channels = line_filter_flux_densities(line_name, rest_freq, cat, cube_prop_dict, params)
 
-        print('Generate the non-smoothed '+line_name+' cube...')
-        CO_oneJ_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
+        if(params['profile']=='tophat'): 
+            Snu, channels = line_channel_flux_densities(line_name, rest_freq, cat, cube_prop_dict)
+            CO_oneJ_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
+
+        else: 
+            Snu = line_filter_flux_densities(line_name, rest_freq,, cat, cube_prop_dict, params)
+            CO_oneJ_nobeam_Jypix = []
+            for f in range(0, cube_prop_dict['shape'][0]):      
+                row = Snu[:,f] #Jy/pix
+                histo, y_edges, x_edges = np.histogram2d(cube_prop_dict['pos'][0], cube_prop_dict['pos'][1], bins=(cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=row)
+                CO_oneJ_nobeam_Jypix.append(histo) #Jy/pix, no beam
+
         CO_oneJ_cubes = save_cubes(CO_oneJ_nobeam_Jypix, cube_prop_dict, params_sides, params, line_name, just_compute = not params['save_each_transition'])
 
         if J == first_Jup:
@@ -430,12 +437,10 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict,filter='tophat'):
 
     return CO_all_cubes 
 
-def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation,filter='tophat'):
-
-    embed()
+def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation):
 
     print('Compute channel locations and flux densities of [CII] line ('+name_relation+'et al.  recipe)...')
-    if(filter=='tophat'): 
+    if(params['profile']=='tophat'): 
         Snu, channels = line_channel_flux_densities('CII_'+name_relation, params_sides["nu_CII"], cat, cube_prop_dict)
         print('Generate the non-smoothed [CII] cube...')
         CII_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
@@ -453,7 +458,7 @@ def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation,filte
 
     return CII_cubes
 
-def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict,filter='tophat'):
+def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict,):
 
     first_loop = True
 
@@ -481,7 +486,7 @@ def make_fir_lines_cube(cat, params_sides, params, cube_prop_dict,filter='tophat
     
     return FIR_lines_cubes
 
-def make_ci_cube(cat, params_sides, params, cube_prop_dict, filter='tophat'):
+def make_ci_cube(cat, params_sides, params, cube_prop_dict):
 
     line_names = ['CI10', 'CI21']
 
@@ -490,11 +495,19 @@ def make_ci_cube(cat, params_sides, params, cube_prop_dict, filter='tophat'):
     for line_name in line_names:
     
         print('Compute channel locations and flux densities of ['+line_name+'] lines...')
-        if(filter == 'tophat'): Snu, channels = line_channel_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict)
-        else: Snu, channels = line_filter_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict, params)
-        
-        print('Generate the non-smoothed ['+line_name+'] cube...')
-        CI_one_trans_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
+
+        if(params['profile']=='tophat'): 
+            Snu, channels = line_channel_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict)
+            CI_one_trans_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
+
+        else: 
+            Snu = line_filter_flux_densities(line_name, params_sides["nu_"+line_name], cat, cube_prop_dict, params)
+            print('Generate the non-smoothed [CII] cube...')
+            CI_one_trans_nobeam_Jypix = []
+            for f in range(0, cube_prop_dict['shape'][0]):      
+                row = Snu[:,f] #Jy/pix
+                histo, y_edges, x_edges = np.histogram2d(cube_prop_dict['pos'][0], cube_prop_dict['pos'][1], bins=(cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=row)
+                CI_one_trans_nobeam_Jypix.append(histo) #Jy/pix, no beam
 
         CI_one_trans_cubes = save_cubes(CI_one_trans_nobeam_Jypix, cube_prop_dict, params_sides, params, line_name, just_compute = not params['save_each_transition'])
 
@@ -527,14 +540,14 @@ def make_cube(cat ,params_sides, params_cube):
     #    continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
 
     print("Create CO cubes...")
-    #CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
+    CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict)
 
     print("Create CI cubes...")
-    #CI_cubes = make_ci_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
+    CI_cubes = make_ci_cube(cat, params_sides, params_cube, cube_prop_dict)
 
     CII_relations_2compute = []
 
-    #keys_computed_cubes = list(CO_cubes.keys()) #if a type of cube is computed, then it is computed for all the components
+    keys_computed_cubes = list(CO_cubes.keys()) #if a type of cube is computed, then it is computed for all the components
     
     if (params_cube['gen_cube_CII_Lagache']):
         CII_relations_2compute.append('Lagache')
@@ -546,7 +559,7 @@ def make_cube(cat ,params_sides, params_cube):
         FIR_lines_cubes = make_fir_lines_cube(cat, params_sides, params_cube, cube_prop_dict)
     '''
     for CII_relation_name in CII_relations_2compute:
-        CII_cubes = make_cii_cube(cat, params_sides, params_cube, cube_prop_dict, CII_relation_name, filter=params_cube['profile'])
+        CII_cubes = make_cii_cube(cat, params_sides, params_cube, cube_prop_dict, CII_relation_name)
 
         #Compute and save the combined cubes
 
