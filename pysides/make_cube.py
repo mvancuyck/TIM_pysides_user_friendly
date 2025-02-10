@@ -70,8 +70,12 @@ def set_wcs(cat,params):
     # compute the size of the frequencies axis
     zmax = w.swapaxes(0, 2).sub(1).wcs_world2pix(params['freq_max'], 0)[0]
 
+    def ceil_to_half_then_floor(x):
+        rounded = np.ceil(x * 2) / 2  # First, round up to the nearest 0.5
+        return np.floor(rounded) if rounded % 1 == 0.5 else rounded  # If .5, round down
+
     # compute the dimensions of the three axes
-    shape = [np.ceil(zmax).astype(int), np.ceil(pos[0].max()), np.ceil(pos[1].max())]
+    shape = [ceil_to_half_then_floor(zmax).astype(int), ceil_to_half_then_floor(pos[0].max()).astype(int), ceil_to_half_then_floor(pos[1].max()).astype(int)]
     shape = [i//2*2+1 for i in shape] #force an odd number of pixels to generate better psf
     x_edges = list(np.arange(-0.5, shape[2] + 0.5, 1)) 
     y_edges = list(np.arange(-0.5, shape[1] + 0.5, 1)) 
