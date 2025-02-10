@@ -90,6 +90,7 @@ if __name__ == "__main__":
     
     for i, (tile_sizeRA, tile_sizeDEC) in enumerate(TIM_params['tile_size']): 
         
+        if(tile_sizeRA>1.1): continue
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
         
@@ -100,7 +101,7 @@ if __name__ == "__main__":
             TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
             file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
 
-            if(not os.path.isfile(file) and False):
+            if(not os.path.isfile(file) ):
 
                 #Load the catalog of the subfield
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
@@ -110,7 +111,7 @@ if __name__ == "__main__":
 
             #To uncomment later for the gif.
             #-------------------------------
-            """
+            '''
             TIM_params['run_name'] = f"pySIDES_from_uchuu_gaussian_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
             file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
             if(not os.path.isfile(file) and l==0):
@@ -124,7 +125,7 @@ if __name__ == "__main__":
             
                 make_cube(cat, params_sides, TIM_params, filter=True)
                 TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
-            """
+            '''
             #-------------------------------
 
 
