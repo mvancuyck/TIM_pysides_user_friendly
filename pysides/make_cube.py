@@ -391,12 +391,17 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
     if('CII' in line): embed()
 
     """
+    #---original cube---#
+    res = (cube_prop_dict['w'].wcs.cdelt[0]*u.deg).to(u.arcsec)
+    pixel_sr = ((res**2)).to(u.sr) #solid angle of the pixel in sr 
     freq_obs = rest_freq / (1 + cat['redshift']) #GHz
     #freq_channel = np.round(freq_obs,0).astype(int) #GHz
     channel = np.asarray(cube_prop_dict['w'].swapaxes(0, 2).sub(1).wcs_world2pix(freq_obs*1e9, 0))[0] 
     nudelt = abs(cube_prop_dict['w'].wcs.cdelt[2]) * 1e-9 #GHz
     vdelt = (cst.c * 1e-3) * nudelt / freq_obs #km/s
     S = cat['I'+line] / vdelt  #Jy
+    CII_nobeam_Jypix, edges = np.histogramdd(sample=(channel, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=S)
+    CII_nobeam_Jysr = CII_nobeam_Jypix / pixel_sr
     """
 
 
@@ -555,11 +560,11 @@ def make_cube(cat ,params_sides, params_cube):
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
         
     print("Create continuum cubes..")                                                                              
-    if(params_cube['save_continuum_only'] or params_cube['save_full']): 
-        continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
+    #if(params_cube['save_continuum_only'] or params_cube['save_full']): 
+    #    continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
 
     print("Create CO cubes...")
-    CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
+    #CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
 
     print("Create CI cubes...")
     CI_cubes = make_ci_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
