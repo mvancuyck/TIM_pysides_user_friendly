@@ -236,48 +236,40 @@ def save_cubes(cube_input, cube_prop_dict, params_sides, params, component_name,
 
 def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='tophat', max_delta_nu_in_ghz_for_flat_cib_assumption = 20.):
 
-    z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
-    channels = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0]
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
     print("Generate CONCERTO monochromatic fluxes...")
 
-    delta_nu_channel_in_ghz = np.diff(channels)[0]/1e9
+    z = np.arange(0,cube_prop_dict['shape'][0],1)
+    channels = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0] / 1e9 #GHz
+
+    delta_nu_channel_in_ghz = np.diff(channels)[0]
     if delta_nu_channel_in_ghz>=max_delta_nu_in_ghz_for_flat_cib_assumption:
         assert profile is not None
 
-    if profile is 'tophat': 
-        lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(channels) * u.Hz)  ).to(u.um).value
-    else:
-        # Compute N-sigma range for each channel, N is given by params['freq_width_in_sigma']
-        fwhm = w.wcs.cdelt[2] - params['diff_btw_freq_resol_and_fwhm'] # Frequency resolution (step between consecutive channels)
-        lower_bounds = channels - params['freq_width_in_fwhm']/2 * fwhm
-        upper_bounds = channels + params['freq_width_in_fwhm']/2 * fwhm
-        freq_list = np.linspace(lower_bounds.min(), upper_bounds.max(), params['spf']*len(channels) )
-        dnu = np.diff(freq_list).mean()
-        lambda_list = ( cst.c * (u.m/u.s)  / (np.asarray(freq_list) * u.Hz)  ).to(u.um).value
-        
+    if(profile=='tophat'): freq_list = channels
+    else: 
+        fwhm = w.wcs.cdelt[2]/1e9 - params['diff_btw_freq_resol_and_fwhm']  # Frequency resolution (step between consecutive channels)
+        freq_list = np.linspace(channels-2*fwhm, channels+2*fwhm, params['spc']*len(channels)+1)
+
+    lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(freq_list*1e9) * u.Hz)  ).to(u.um).value
     Snu_arr = gen_Snu_arr(lambda_list, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
 
-    if profile != 'tophat':
-
-        mask = (freq_list[:,np.newaxis] >= lower_bounds) & (freq_list[:,np.newaxis] < upper_bounds)
-        #-----------
-        transmission = get_profile_transmission(freq_list/1e9, channels/1e9, fwhm/1e9, profile = profile)
-        #-----------
-        Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * mask.astype(int)* transmission 
-        #freq_transmitted = freq_list[:,np.newaxis]*mask
-        Snu_transmitted = np.sum(Snu_arr_transmitted , axis=1) * dnu # To double check !!
+    if(profile != 'tophat'):
+        dnu = np.diff(freq_list).mean()
+        transmission = get_profile_transmission(freq_list, channels, fwhm, profile = profile)
+        Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * transmission 
+        Snu_transmitted = np.sum(Snu_arr_transmitted , axis=1) * dnu 
         Snu_arr = Snu_transmitted
             
     return Snu_arr
 
-def make_continuum_cube(cat, params_sides, params, cube_prop_dict, filter='tophat'):
+def make_continuum_cube(cat, params_sides, params, cube_prop_dict):
 
-
+    embed()
     continuum_nobeam_Jypix = []
 
-    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, params,profile=filter)
+    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, params,profile=params['profile'])
 
     for f in range(0, cube_prop_dict['shape'][0]):      
         row = channels_flux_densities[:,f] #Jy/pix
