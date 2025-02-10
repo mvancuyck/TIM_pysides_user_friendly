@@ -567,11 +567,11 @@ def make_cube(cat ,params_sides, params_cube):
     #CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
 
     print("Create CI cubes...")
-    CI_cubes = make_ci_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
+    #CI_cubes = make_ci_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
 
     CII_relations_2compute = []
 
-    keys_computed_cubes = list(CO_cubes.keys()) #if a type of cube is computed, then it is computed for all the components
+    #keys_computed_cubes = list(CO_cubes.keys()) #if a type of cube is computed, then it is computed for all the components
     
     if (params_cube['gen_cube_CII_Lagache']):
         CII_relations_2compute.append('Lagache')
