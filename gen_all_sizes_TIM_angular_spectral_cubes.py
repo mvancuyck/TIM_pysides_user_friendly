@@ -90,7 +90,6 @@ if __name__ == "__main__":
     
     for i, (tile_sizeRA, tile_sizeDEC) in enumerate(TIM_params['tile_size']): 
         
-        if(tile_sizeRA>1.1): continue
         # List files matching the pattern
         files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
         
