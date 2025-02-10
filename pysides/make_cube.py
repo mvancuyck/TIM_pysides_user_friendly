@@ -286,6 +286,7 @@ def make_continuum_cube(cat, params_sides, params, cube_prop_dict, filter='topha
 
 def line_channel_flux_densities(line, rest_freq, cat, cube_prop_dict):
 
+    if('CII' in line): embed()
     freq_obs = rest_freq / (1 + cat['redshift']) #GHz
     #freq_channel = np.round(freq_obs,0).astype(int) #GHz
     channel = np.asarray(cube_prop_dict['w'].swapaxes(0, 2).sub(1).wcs_world2pix(freq_obs*1e9, 0))[0] 
