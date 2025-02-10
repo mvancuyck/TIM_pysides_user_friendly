@@ -528,8 +528,8 @@ def make_cube(cat ,params_sides, params_cube):
         cube_prop_dict['kernel'], cube_prop_dict['beam_area_pix2'] = set_kernel(params_cube, cube_prop_dict)
         
     print("Create continuum cubes..")                                                                              
-    #if(params_cube['save_continuum_only'] or params_cube['save_full']): 
-    #    continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
+    if(params_cube['save_continuum_only'] or params_cube['save_full']): 
+        continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
 
     print("Create CO cubes...")
     CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict)
