@@ -269,7 +269,7 @@ def make_continuum_cube(cat, params_sides, params, cube_prop_dict):
     embed()
     continuum_nobeam_Jypix = []
 
-    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, params,profile=params['profile'])
+    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, params,)
 
     for f in range(0, cube_prop_dict['shape'][0]):      
         row = channels_flux_densities[:,f] #Jy/pix
