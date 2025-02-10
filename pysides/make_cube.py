@@ -290,7 +290,6 @@ def make_continuum_cube(cat, params_sides, params, cube_prop_dict, filter='topha
 
 def line_channel_flux_densities(line, rest_freq, cat, cube_prop_dict):
 
-    if('CII' in line): embed()
     freq_obs = rest_freq / (1 + cat['redshift']) #GHz
     #freq_channel = np.round(freq_obs,0).astype(int) #GHz
     channel = np.asarray(cube_prop_dict['w'].swapaxes(0, 2).sub(1).wcs_world2pix(freq_obs*1e9, 0))[0] 
@@ -389,6 +388,18 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
     '''
     """
 
+    if('CII' in line): embed()
+
+    """
+    freq_obs = rest_freq / (1 + cat['redshift']) #GHz
+    #freq_channel = np.round(freq_obs,0).astype(int) #GHz
+    channel = np.asarray(cube_prop_dict['w'].swapaxes(0, 2).sub(1).wcs_world2pix(freq_obs*1e9, 0))[0] 
+    nudelt = abs(cube_prop_dict['w'].wcs.cdelt[2]) * 1e-9 #GHz
+    vdelt = (cst.c * 1e-3) * nudelt / freq_obs #km/s
+    S = cat['I'+line] / vdelt  #Jy
+    """
+
+
     assert line in ['CO10', 'CO21', 'CO32', 'CO43', 'CO54', 'CO65', 'CO76', 'CO87', 'CII_de_Looze', 'CI10', 'CI21', 'SSB'] 
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     w = cube_prop_dict['w']
@@ -427,6 +438,7 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
 
     #Check only spectral axis
     #hist, _ = np.histogram(channels_flat, bins=cube_prop_dict['z_edges'], weights=Snu_flat)  
+    #CII_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
 
     return Snu_flat, channels_flat
 
