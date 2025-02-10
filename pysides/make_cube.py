@@ -234,7 +234,7 @@ def save_cubes(cube_input, cube_prop_dict, params_sides, params, component_name,
     
     return cubes_dict
 
-def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='tophat', max_delta_nu_in_ghz_for_flat_cib_assumption = 20.):
+def channel_flux_densities(cat, params_sides, cube_prop_dict, params, max_delta_nu_in_ghz_for_flat_cib_assumption = 20.):
 
     w = cube_prop_dict['w']
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
@@ -245,9 +245,9 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='t
 
     delta_nu_channel_in_ghz = np.diff(channels)[0]
     if delta_nu_channel_in_ghz>=max_delta_nu_in_ghz_for_flat_cib_assumption:
-        assert profile is not None
+        assert params['profile'] is not None
 
-    if(profile=='tophat'): freq_list = channels
+    if(params['profile']=='tophat'): freq_list = channels
     else: 
         fwhm = w.wcs.cdelt[2]/1e9 - params['diff_btw_freq_resol_and_fwhm']  # Frequency resolution (step between consecutive channels)
         freq_list = np.linspace(channels-2*fwhm, channels+2*fwhm, params['spc']*len(channels)+1)
@@ -255,9 +255,9 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, profile='t
     lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(freq_list*1e9) * u.Hz)  ).to(u.um).value
     Snu_arr = gen_Snu_arr(lambda_list, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
 
-    if(profile != 'tophat'):
+    if(params['profile'] != 'tophat'):
         dnu = np.diff(freq_list).mean()
-        transmission = get_profile_transmission(freq_list, channels, fwhm, profile = profile)
+        transmission = get_profile_transmission(freq_list, channels, fwhm, profile = params['profile'])
         Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * transmission 
         Snu_transmitted = np.sum(Snu_arr_transmitted , axis=1) * dnu 
         Snu_arr = Snu_transmitted
@@ -269,7 +269,7 @@ def make_continuum_cube(cat, params_sides, params, cube_prop_dict):
     embed()
     continuum_nobeam_Jypix = []
 
-    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, params,)
+    channels_flux_densities = channel_flux_densities(cat, params_sides,cube_prop_dict, params)
 
     for f in range(0, cube_prop_dict['shape'][0]):      
         row = channels_flux_densities[:,f] #Jy/pix
@@ -529,7 +529,7 @@ def make_cube(cat ,params_sides, params_cube):
         
     print("Create continuum cubes..")                                                                              
     if(params_cube['save_continuum_only'] or params_cube['save_full']): 
-        continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, filter=params_cube['profile'])
+        continuum_cubes = make_continuum_cube(cat, params_sides, params_cube, cube_prop_dict, )
 
     print("Create CO cubes...")
     CO_cubes = make_co_cube(cat, params_sides, params_cube, cube_prop_dict)
