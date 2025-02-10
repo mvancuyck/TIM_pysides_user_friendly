@@ -407,7 +407,7 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict):
             CO_oneJ_nobeam_Jypix, edges = np.histogramdd(sample=(channels, cube_prop_dict['pos'][0], cube_prop_dict['pos'][1]), bins=(cube_prop_dict['z_edges'], cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=Snu)
 
         else: 
-            Snu = line_filter_flux_densities(line_name, rest_freq,, cat, cube_prop_dict, params)
+            Snu = line_filter_flux_densities(line_name, rest_freq, cat, cube_prop_dict, params)
             CO_oneJ_nobeam_Jypix = []
             for f in range(0, cube_prop_dict['shape'][0]):      
                 row = Snu[:,f] #Jy/pix
