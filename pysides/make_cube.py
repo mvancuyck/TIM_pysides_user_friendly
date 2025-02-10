@@ -250,7 +250,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, max_delta_
     if(params['profile']=='tophat'): freq_list = channels
     else: 
         fwhm = w.wcs.cdelt[2]/1e9 - params['diff_btw_freq_resol_and_fwhm']  # Frequency resolution (step between consecutive channels)
-        freq_list = np.linspace(channels-2*fwhm, channels+2*fwhm, params['spc']*len(channels)+1)
+        freq_list = np.linspace(channels-2*fwhm, channels+2*fwhm, params['spf']*len(channels)+1)
 
     lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(freq_list*1e9) * u.Hz)  ).to(u.um).value
     Snu_arr = gen_Snu_arr(lambda_list, SED_dict, cat["redshift"], cat['mu']*cat["LIR"], cat["Umean"], cat["Dlum"], cat["issb"])
