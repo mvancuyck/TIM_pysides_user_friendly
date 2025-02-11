@@ -92,7 +92,6 @@ def gen_fluxes(cat, params):
 
 def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
 
-    start_time = time.time()
     #mask = np.where((SED_dict["lambda"]>= lambda_rest[j,0]) & (SED_dict["lambda"] <= lambda_rest[j,1]))
 
     stype = ["nuLnu_SB_arr" if a else "nuLnu_MS_arr" for a in issb]
@@ -116,8 +115,6 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     Numerator = Lnu * ( 1 + np.array(redshift)[:,np.newaxis]) * (1/ (np.pi *  4 ))
     Denominator = ((np.asarray(Dlum) * u.Mpc).to(u.m)) ** 2
     Snu_arr = ( Numerator / Denominator[:, np.newaxis] ).to(u.Jy)
-    print('')
-    print("Generated SEDs in %s minutes ---" % np.round((time.time() - start_time)/60,2))
 
     return Snu_arr  
 
