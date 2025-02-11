@@ -102,29 +102,23 @@ if __name__ == "__main__":
             if(not os.path.isfile(file) and True ):
 
                 #Load the catalog of the subfield
-                print(cfile)
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
-                TIM_params['profile'] = 'gaussian'
                 make_cube(cat, params_sides, TIM_params)
 
             #To uncomment later for the gif.
             #-------------------------------
-            '''
             TIM_params['run_name'] = f"pySIDES_from_uchuu_gaussian_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
             file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
             if(not os.path.isfile(file) and l==0):
 
-                TIM_params['save_continuum_only'] = False
-                TIM_params['save_full'] = False
-
                 #Load the catalog of the subfield
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
-            
+                TIM_params['profile']='gaussian'
                 make_cube(cat, params_sides, TIM_params, filter=True)
                 TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
-            '''
+            
             #-------------------------------
 
 
