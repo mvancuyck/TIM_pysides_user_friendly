@@ -130,15 +130,17 @@ if __name__ == "__main__":
             cat = cat.to_pandas()
 
             #make_all_cubes(cat,params_sides)
-            for profile in ('gaussian',):
 
-                for zrange in ('highz', 'lowz', 'midz'):
-                    TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{zrange}.par')
+            for zrange in ('highz', 'lowz', 'midz'):
+                TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{zrange}.par')
 
-                    ##Generate the TIM cubes with params precised in TIM_params.par
-                    TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
-                    file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
-                    if(not os.path.isfile(file) or  True): make_cube(cat, params_sides, TIM_params)
+                ##Generate the TIM cubes with params precised in TIM_params.par
+                TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
+                file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
+                if(not os.path.isfile(file) or  True): make_cube(cat, params_sides, TIM_params)
+
+                for profile in ('gaussian',):
+
 
                     TIM_params['profile'] = profile
 
