@@ -245,13 +245,14 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, max_delta_
     z = np.arange(0,cube_prop_dict['shape'][0],1)
     channels = w.swapaxes(0, 2).sub(1).wcs_pix2world(z, 0)[0] / 1e9 #GHz
 
+    '''
     delta_nu_channel_in_ghz = np.diff(channels)[0]
     if delta_nu_channel_in_ghz>=max_delta_nu_in_ghz_for_flat_cib_assumption:
         assert params['profile'] is not None
+    '''
 
     if(params['profile']=='tophat'): freq_list = channels
     else: 
-
         fwhm = w.wcs.cdelt[2]/1e9 - params['diff_btw_freq_resol_and_fwhm']  # Frequency resolution (step between consecutive channels)
         freq_list = np.linspace(channels.min()-2*fwhm, channels.max()+2*fwhm, params['spf']*len(channels)+1)
 
@@ -262,8 +263,8 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, max_delta_
         dnu = np.diff(freq_list).mean(); nudelt = abs(cube_prop_dict['w'].wcs.cdelt[2]) * 1e-9 #GHz
 
         transmission = get_profile_transmission(freq_list, channels, fwhm, profile = params['profile'])
-        Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * transmission * (dnu/nudelt)
-        Snu_arr = np.sum(Snu_arr_transmitted , axis=1) * dnu 
+        Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * transmission
+        Snu_arr = np.sum(Snu_arr_transmitted , axis=1)  * (dnu/nudelt)
 
     print("Generated monochromatic fluxes in %s minutes ---" % np.round((time.time() - start_time)/60,2))
  
