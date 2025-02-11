@@ -94,21 +94,24 @@ if __name__ == "__main__":
         files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
         
         for l, cfile in enumerate(files):
+            #Load the catalog of the subfield
+            cat = Table.read(TIM_params["sides_cat_path"]+cfile)
+            cat = cat.to_pandas()
 
             #Generate the TIM cubes with params precised in TIM_params.par
             TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
             file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
 
-            if(not os.path.isfile(file)):
-
-                #Load the catalog of the subfield
-                cat = Table.read(TIM_params["sides_cat_path"]+cfile)
-                cat = cat.to_pandas()
-                make_cube(cat, params_sides, TIM_params)
+            if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
 
             #To uncomment later for the gif.
             #-------------------------------
-
+            '''
+            TIM_params['profile'] = 'gaussian'
+            TIM_params['run_name'] = f"pySIDES_from_uchuu_gaussian_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_minus{TIM_params['diff_btw_freq_resol_and_fwhm']/1e9:.1f}GHz_forfwhm"
+            file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
+            if(not os.path.isfile(file) and l==0):  make_cube(cat, params_sides, TIM_params)
+            '''
             #-------------------------------
 
             #Generate the CONCERTO cubes if wanted
