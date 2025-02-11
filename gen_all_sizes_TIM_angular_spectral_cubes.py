@@ -88,7 +88,7 @@ if __name__ == "__main__":
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
     CONCERTO_params = load_params('PAR_FILES/Uchuu_cubes_for_CONCERTO.par')
     
-    if(False):
+    if(True):
         for i, (tile_sizeRA, tile_sizeDEC) in enumerate(TIM_params['tile_size']): 
             
             # List files matching the pattern
@@ -103,16 +103,16 @@ if __name__ == "__main__":
                 TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
 
-                if(not os.path.isfile(file)): make_cube(cat, params_sides, TIM_params)
+                if(not os.path.isfile(file) or True): make_cube(cat, params_sides, TIM_params)
 
                 #To uncomment later for the gif.
                 #-------------------------------
-                '''
+                
                 TIM_params['profile'] = 'gaussian'
                 TIM_params['run_name'] = f"pySIDES_from_uchuu_gaussian_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_minus{TIM_params['diff_btw_freq_resol_and_fwhm']/1e9:.1f}GHz_forfwhm"
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
-                if(not os.path.isfile(file) and l==0):  make_cube(cat, params_sides, TIM_params)
-                '''
+                if(not os.path.isfile(file) and l==0 and ((tile_sizeRA==0.2) or (tile_sizeRA==1.414))):  make_cube(cat, params_sides, TIM_params)
+                
                 #-------------------------------
 
                 #Generate the CONCERTO cubes if wanted
@@ -121,7 +121,7 @@ if __name__ == "__main__":
                 file = CONCERTO_params['output_path'] +  CONCERTO_params['run_name'] + 'full_de_Looze_smoothed_MJy_sr.fits' 
                 if(not os.path.isfile(file)): make_cube(cat, params_sides, CONCERTO_params)
                 '''
-    
+    embed()
     #generate smaller chunks of the TIM cube
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_size']: 
 
