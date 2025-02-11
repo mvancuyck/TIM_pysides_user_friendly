@@ -415,7 +415,7 @@ def make_co_cube(cat, params_sides, params, cube_prop_dict):
                 histo, y_edges, x_edges = np.histogram2d(cube_prop_dict['pos'][0], cube_prop_dict['pos'][1], bins=(cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=row)
                 CO_oneJ_nobeam_Jypix.append(histo) #Jy/pix, no beam
 
-        CO_oneJ_cubes = save_cubes(CO_oneJ_nobeam_Jypix, cube_prop_dict, params_sides, params, line_name, just_compute = not params['save_each_transition'])
+        CO_oneJ_cubes = save_cubes(np.asarray(CO_oneJ_nobeam_Jypix), cube_prop_dict, params_sides, params, line_name, just_compute = not params['save_each_transition'])
 
         if J == first_Jup:
             keys_computed_cubes = list(CO_oneJ_cubes.keys()) #list of type of cubes computed (smoothed or not, unit)
@@ -447,7 +447,7 @@ def make_cii_cube(cat, params_sides, params, cube_prop_dict, name_relation):
             histo, y_edges, x_edges = np.histogram2d(cube_prop_dict['pos'][0], cube_prop_dict['pos'][1], bins=(cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=row)
             CII_nobeam_Jypix.append(histo) #Jy/pix, no beam
     
-    CII_cubes = save_cubes(CII_nobeam_Jypix, cube_prop_dict, params_sides, params, 'CII_'+name_relation, just_compute = not params['save_each_line'])
+    CII_cubes = save_cubes(np.asarray(CII_nobeam_Jypix), cube_prop_dict, params_sides, params, 'CII_'+name_relation, just_compute = not params['save_each_line'])
 
     return CII_cubes
 
@@ -502,7 +502,7 @@ def make_ci_cube(cat, params_sides, params, cube_prop_dict):
                 histo, y_edges, x_edges = np.histogram2d(cube_prop_dict['pos'][0], cube_prop_dict['pos'][1], bins=(cube_prop_dict['y_edges'], cube_prop_dict['x_edges']), weights=row)
                 CI_one_trans_nobeam_Jypix.append(histo) #Jy/pix, no beam
 
-        CI_one_trans_cubes = save_cubes(CI_one_trans_nobeam_Jypix, cube_prop_dict, params_sides, params, line_name, just_compute = not params['save_each_transition'])
+        CI_one_trans_cubes = save_cubes(np.asarray(CI_one_trans_nobeam_Jypix), cube_prop_dict, params_sides, params, line_name, just_compute = not params['save_each_transition'])
 
         if first_loop:
             CI_both_cubes = deepcopy(CI_one_trans_cubes)
