@@ -130,7 +130,7 @@ if __name__ == "__main__":
             cat = cat.to_pandas()
 
             #make_all_cubes(cat,params_sides)
-            for profile in ('gaussian','lorentzian'):
+            for profile in ('gaussian',):
 
                 for zrange in ('highz', 'lowz', 'midz'):
                     TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{zrange}.par')
