@@ -98,11 +98,12 @@ if __name__ == "__main__":
                 #Load the catalog of the subfield
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
-
+                '''
                 #Generate the TIM cubes with params precised in TIM_params.par
                 TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
                 if(not os.path.isfile(file) or True): make_cube(cat, params_sides, TIM_params)
+                '''
 
                 #To uncomment later for the gif.
                 #-------------------------------
