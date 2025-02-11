@@ -132,6 +132,8 @@ if __name__ == "__main__":
 
             for l, cfile in enumerate(files):
 
+                if(l>9): continue
+
                 #Load the catalog of the subfield
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
@@ -142,6 +144,7 @@ if __name__ == "__main__":
                 if(not os.path.isfile(file) ): make_cube(cat, params_sides, TIM_params)
 
                 for profile in ('gaussian',):
+                    #for minusdnu in ():
 
                     TIM_params['profile'] = profile
 
