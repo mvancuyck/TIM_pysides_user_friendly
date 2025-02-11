@@ -98,23 +98,22 @@ if __name__ == "__main__":
                 #Load the catalog of the subfield
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
-                '''
+                
                 #Generate the TIM cubes with params precised in TIM_params.par
                 TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
                 if(not os.path.isfile(file) or True): make_cube(cat, params_sides, TIM_params)
-                '''
+                
 
                 #To uncomment later for the gif.
                 #-------------------------------
                 TIM_params['profile'] = 'gaussian'
-                embed()
                 freqs = np.arange(TIM_params['freq_min'], TIM_params['freq_max']+TIM_params['freq_resol'], TIM_params['freq_resol'])
                 nbin = 10
                 bins_low = freqs[::nbin]
                 bins_high = freqs[::nbin]+(nbin-1)*TIM_params['freq_resol']
                 for j, (low, high) in enumerate(zip(bins_low, bins_high)):
-                    TIM_params['run_name'] = f"pySIDES_from_uchuu_gaussian_TIM_tile{l}_bin{j}_over_{len(bins_low)}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_minus{TIM_params['diff_btw_freq_resol_and_fwhm']/1e9:.1f}GHz_forfwhm"
+                    TIM_params['run_name'] = f"pySIDES_from_uchuu_gaussian_TIM_tile{l}_bin{j+1}_over_{len(bins_low)}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_minus{TIM_params['diff_btw_freq_resol_and_fwhm']/1e9:.1f}GHz_forfwhm"
                     TIM_params['freq_max'] = high
                     TIM_params['freq_min'] = low
                     file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
