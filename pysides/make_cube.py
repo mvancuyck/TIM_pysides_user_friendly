@@ -239,7 +239,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, max_delta_
 
     w = cube_prop_dict['w']
     SED_dict = pickle.load(open(params_sides['SED_file'], "rb"))
-    print("Generate monochromatic fluxes...")
+    print(f"Generate monochromatic {params['profile']} fluxes...")
     start_time = time.time()
 
     z = np.arange(0,cube_prop_dict['shape'][0],1)
@@ -265,8 +265,8 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, max_delta_
         transmission = get_profile_transmission(freq_list, channels, fwhm, profile = params['profile'])
         Snu_arr_transmitted = Snu_arr[:,:,np.newaxis] * transmission
         Snu_arr = np.sum(Snu_arr_transmitted , axis=1)  * (dnu/nudelt)
-
-    print("Generated monochromatic fluxes in %s minutes ---" % np.round((time.time() - start_time)/60,2))
+    print('')
+    print(" Generated monochromatic fluxes in %s minutes ---" % np.round((time.time() - start_time)/60,2))
  
     return Snu_arr
 
