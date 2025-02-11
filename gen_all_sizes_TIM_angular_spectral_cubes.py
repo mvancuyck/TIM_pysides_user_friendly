@@ -116,7 +116,7 @@ if __name__ == "__main__":
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
                 TIM_params['profile']='gaussian'
-                make_cube(cat, params_sides, TIM_params, filter=True)
+                make_cube(cat, params_sides, TIM_params)
                 TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
             
             #-------------------------------
