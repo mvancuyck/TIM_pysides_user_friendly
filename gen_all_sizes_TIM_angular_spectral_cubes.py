@@ -149,7 +149,7 @@ if __name__ == "__main__":
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
                 if(not os.path.isfile(file) ): make_cube(cat, params_sides, TIM_params)
 
-                for profile in ('gaussian',):
+                for profile in ('lorentzian',):
                     #for minusdnu in ():
 
                     TIM_params['profile'] = profile
