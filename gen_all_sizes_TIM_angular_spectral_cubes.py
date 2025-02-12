@@ -88,7 +88,7 @@ if __name__ == "__main__":
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
     CONCERTO_params = load_params('PAR_FILES/Uchuu_cubes_for_CONCERTO.par')
     
-    if(True):
+    if(False):
         for i, (tile_sizeRA, tile_sizeDEC) in enumerate(TIM_params['tile_size']): 
             
             # List files matching the pattern
@@ -135,7 +135,6 @@ if __name__ == "__main__":
         files = sorted_files_by_n(TIM_params["sides_cat_path"], ((tile_sizeRA, tile_sizeDEC),))
 
         for zrange in ('highz', 'lowz', 'midz'):
-            TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{zrange}.par')
 
             for l, cfile in enumerate(files):
 
@@ -145,10 +144,11 @@ if __name__ == "__main__":
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
 
+                TIM_params = load_params(f'PAR_FILES/Uchuu_minicubes_for_TIM_{zrange}.par')
                 ##Generate the TIM cubes with params precised in TIM_params.par
                 TIM_params['run_name'] = f"pySIDES_from_uchuu_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz"
                 file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
-                if(not os.path.isfile(file) ): make_cube(cat, params_sides, TIM_params)
+                if(not os.path.isfile(file) and True ): make_cube(cat, params_sides, TIM_params)
 
                 for profile in ('lorentzian',):
                     #for minusdnu in ():
