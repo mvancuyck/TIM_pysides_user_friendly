@@ -103,13 +103,10 @@ def gen_Snu_arr(lambda_list, SED_dict, redshift, LIR, Umean, Dlum, issb):
     lambda_rest = lambda_list / (1 + np.array(redshift)[:, np.newaxis]) * u.um #lambda list is in micron!
     nu_rest_Hz = (cst.c * u.m/u.s) / lambda_rest.to(u.m)
     nuLnu     = np.zeros([len(redshift), len(lambda_list)])
-    bar = Bar('Generate the SEDs', max=len(Uindex))
 
     for j,k in enumerate(Uindex):
         nuLnu[j,:] = np.interp(lambda_rest[j,:].value, SED_dict["lambda"], SED_dict[stype[j]][k]) 
-        bar.next()
 
-    bar.finish
     nuLnu /= nu_rest_Hz.value
     Lnu = (3.828e26 * u.W) * np.array(LIR)[:, np.newaxis] * nuLnu / u.Hz #W/Hz (the output of the worker is in Hz^-1)
     Numerator = Lnu * ( 1 + np.array(redshift)[:,np.newaxis]) * (1/ (np.pi *  4 ))
