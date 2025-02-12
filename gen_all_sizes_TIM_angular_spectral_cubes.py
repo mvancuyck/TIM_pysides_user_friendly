@@ -88,7 +88,7 @@ if __name__ == "__main__":
     TIM_params = load_params('PAR_FILES/Uchuu_cubes_for_TIM.par')
     CONCERTO_params = load_params('PAR_FILES/Uchuu_cubes_for_CONCERTO.par')
     
-    if(True):
+    if(False):
         for i, (tile_sizeRA, tile_sizeDEC) in enumerate(TIM_params['tile_size']): 
             
             # List files matching the pattern
@@ -126,7 +126,6 @@ if __name__ == "__main__":
                 file = CONCERTO_params['output_path'] +  CONCERTO_params['run_name'] + 'full_de_Looze_smoothed_MJy_sr.fits' 
                 if(not os.path.isfile(file)): make_cube(cat, params_sides, CONCERTO_params)
                 '''
-    embed()
     #generate smaller chunks of the TIM cube
     for tile_sizeRA, tile_sizeDEC in TIM_params['tile_size']: 
 
