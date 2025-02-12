@@ -2,6 +2,7 @@ import sys
 import os
 from pysides.make_cube import *
 from pysides.load_params import *
+from set_k import *
 import argparse
 import time
 import matplotlib
@@ -216,90 +217,6 @@ def p_of_k_for_comoving_cube(cat_name,line,rest_freq, z_center, Delta_z,  fileca
     pickle.dump(dict, open(pars['output_path']+f'{cat_name}_cube_3D_z{z_center}_MJy_sr_{line}.p', 'wb'))
     '''
 
-def naive_NU_DF_PK_for_angular_spectral_cube(z_center, Delta_z, cubefile='OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile99_0.2deg_1deg_CII_de_Looze_nobeam_MJy_sr.fits',
-                                        rest_freq = 1900.53690000 * u.GHz, dkk=0.4, toemb=False):
-
-    #Naive Non-Uniform power spectrum
-    #I need to investigate more references.
-
-    #Load the angular spectral cube and its header 
-    hdu = fits.open(cubefile)
-    hdr = hdu[0].header
-    angular_cube = hdu[0].data * u.Unit(hdr['BUNIT'])
-    w = wcs.WCS(hdr)   
-    hdr['CRVAL1'] = hdr['CRVAL2']
-    
-    #Set the redshift axis  append=x[-1]
-    freqs = np.linspace(0,hdr['NAXIS3'],hdr['NAXIS3']+1)
-    freq_list = w.swapaxes(0, 2).sub(1).wcs_pix2world(freqs, 0)[0] * u.Unit(hdr['CUNIT3'])
-
-    freqmin = (rest_freq.to(hdr['CUNIT3'])) / (1+z_center+Delta_z/2)
-    freqmax = (rest_freq.to(hdr['CUNIT3'])) / (1+z_center-Delta_z/2)
-    fmin = np.where(freq_list>= freqmin)[0][0]
-    fmax = np.where(freq_list<= freqmax)[0][-1]
-    freq_list = freq_list[fmin:fmax+2]
-    angular_cube = angular_cube[fmin:fmax+1]
-
-    redshift_list = (rest_freq.to(hdr['CUNIT3']) / freq_list - 1 ).value  
-    Dc_center = cosmo.comoving_distance(redshift_list)
-  
-    Nmax = np.max((hdr['NAXIS2'],hdr['NAXIS1']))
-
-    #xpixlist = np.linspace(0,Nmax,Nmax+1)
-    #ypixlist = np.linspace(0,Nmax,Nmax+1)
-    #ra, dec = w.celestial.wcs_pix2world(ypixlist, xpixlist, 0)*u.deg
-
-    ra = np.arange(hdr['CRVAL1'], hdr['CRVAL1']+(Nmax+1)*hdr['CDELT1'], hdr['CDELT1'])[:(Nmax+1)]*u.Unit(hdr['CUNIT1'])
-    dec = np.arange(hdr['CRVAL2'], hdr['CRVAL2']+(Nmax+1)*hdr['CDELT2'], hdr['CDELT2'])[:(Nmax+1)]*u.Unit(hdr['CUNIT2'])
-    ra_grid, dec_grid = np.meshgrid(ra, dec)
-
-    ra_center = np.mean(ra)
-    dec_center = np.mean(dec)
-    delta_ra = np.max(ra) - np.min(ra)
-    delta_dec = np.max(dec) - np.min(dec)
-
-    #compute the coordinates in the cube
-    y_Mpc = Dc_center[:,np.newaxis] * (( ra[ np.newaxis,:]  - ra_center)  * (np.pi/180) * np.cos(np.pi/180*ra[ np.newaxis,:])).value
-    x_Mpc = Dc_center[:,np.newaxis] * (( dec[ np.newaxis,:] - dec_center) * (np.pi/180)).value
-
-    dept_vox = np.abs(np.diff(Dc_center))
-
-    area_vox = np.zeros(( int(fmax-fmin+1), Nmax , Nmax ))  
-    area_vox[:,:,:] = np.abs(np.diff(y_Mpc[:1,:], axis=1)[:,:,np.newaxis]) * np.abs(np.diff(x_Mpc[:1,:], axis=1)[:,np.newaxis,:])
-    v_vox = dept_vox[:,np.newaxis, np.newaxis] * area_vox[:, :,:]   
-    angular_cube /= v_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']]
-
-    res_perp = (area_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']].mean())**(1/2)
-    res_rad  =  dept_vox.mean()
-    res_avg = (v_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']].mean())*(1/3)
-
-    kz = 2*np.pi*give_map_spatial_freq_one_axis(res_rad, len(Dc_center))
-    kmaps_list = []
-    for z in range(int(fmax-fmin+1)):
-        res = (area_vox[z,:hdr['NAXIS2'],:hdr['NAXIS1']].mean())
-        kmap = 2*np.pi*give_map_spatial_freq(res, angular_cube.shape[1], angular_cube.shape[2])
-        kmaps_list.append(kmap)
-
-    kmaps_list = np.asarray(kmaps_list)
-    k = np.sqrt(np.asarray(kmaps_list)**2+kz[:-1,np.newaxis, np.newaxis].value**2)/u.Mpc
-    dk_min = 2 / ( np.min([hdr['NAXIS1'],hdr['NAXIS2'],hdr['NAXIS3']]) * res_avg )
-
-    k_bins, k_width = make_bintab(k.value, dk_min.value, dkk=dkk)
-
-    normpk =  v_vox[:,:hdr['NAXIS2'],:hdr['NAXIS1']] / (hdr['NAXIS1'] * hdr['NAXIS2'] * hdr['NAXIS3'])
-    pow_sqr = np.absolute(np.fft.fftn(angular_cube)**2 * normpk )
-
-    norm_k, k_edges = np.histogram(k.value, bins=k_bins)
-    k_adress, k_edges = np.histogram(k.value, bins=k_bins, weights=k)
-    k_adress /= norm_k
-    p_of_k, k_edges = np.histogram(k.value, bins=k_bins, weights=pow_sqr)
-    p_of_k /= norm_k
-
-    #plt.loglog(k_adress, p_of_k)
-    #plt.show()
-    if(toemb): embed()
-
-    return k_adress, p_of_k.to(u.Jy**2/u.sr**2/u.Mpc)
 
 if __name__ == "__main__":
 
@@ -320,10 +237,6 @@ if __name__ == "__main__":
             for z_center, dz in zip(TIM_params['z_centers'], TIM_params['dz']): 
 
                 dictl[f'pk_3D_z{z_center}_CII_de_Looze'] = p_of_k_for_comoving_cube(file[:-5],'CII_de_Looze',freq_CII, z_center, dz, file, TIM_params)
-
-                #k, pk = naive_NU_DF_PK_for_angular_spectral_cube(z_center, dz, cubefile=f'OUTPUT_TIM_CUBES_FROM_UCHUU/pySIDES_from_uchuu_TIM_tile{l}_{tile_sizeRA}deg_{tile_sizeDEC}deg_CII_de_Looze_nobeam_MJy_sr.fits',toemb=toemb)
-                #ddictl[f'pk_3D_non-uniform_z{z_center}_CII_de_Looze'] = pk
-                #dictl[f'k_3D_non-uniform_z{z_center}_CII_de_Looze'] = k
 
             dict_fieldsize[f'{l}'] = dictl
 
