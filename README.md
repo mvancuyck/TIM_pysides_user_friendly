@@ -14,7 +14,7 @@ example_angular_spectral_map.py summarizes how the make_cube() works.
 
 This git also contain a way to generate 3D comoving CII cubes and measure their power spectra. 
 
-kmodes_in_rectangle_cubes.ipynb explores which k modes in Mpc-1 units are available.
+kmodes_in_rectangle_cubes.ipynb explores which k modes in Mpc-1 units are available in TIM.
 
 spt_smg_obs.ipynb contains my first exploration of pointed observations with TIM. 
 
