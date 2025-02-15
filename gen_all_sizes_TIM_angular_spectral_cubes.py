@@ -139,6 +139,7 @@ if __name__ == "__main__":
 
             for l, cfile in enumerate(files):
 
+                if (l>9): continue
                 #Load the catalog of the subfield
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
@@ -150,10 +151,11 @@ if __name__ == "__main__":
                 #if(not os.path.isfile(file) ): make_cube(cat, params_sides, TIM_params)
 
                 for profile in ('lorentzian','gaussian'):
-                    #for minusdnu in ():
+                    for minusdnu in (0.25, 0.5, 0.75, 1, 1.5):
 
-                    TIM_params['profile'] = profile
+                        TIM_params['profile'] = profile
+                        TIM_params['diff_btw_freq_resol_and_fwhm'] = minusdnu * 1e9
 
-                    TIM_params['run_name'] = f"pySIDES_from_uchuu_{profile}_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_minus{TIM_params['diff_btw_freq_resol_and_fwhm']/1e9:.1f}GHz_forfwhm"
-                    file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
-                    if(not os.path.isfile(file) ): make_cube(cat, params_sides, TIM_params)
+                        TIM_params['run_name'] = f"pySIDES_from_uchuu_{profile}_TIM_tile{l}_{zrange}_{tile_sizeRA}deg_{tile_sizeDEC}deg_res{TIM_params['pixel_size']:.0f}arcsec_dnu{TIM_params['freq_resol']/1e9:.1f}GHz_minus{TIM_params['diff_btw_freq_resol_and_fwhm']/1e9:.1f}GHz_forfwhm"
+                        file = TIM_params['output_path'] +  TIM_params['run_name'] + '_full_de_Looze_smoothed_MJy_sr.fits' 
+                        if(not os.path.isfile(file) ): make_cube(cat, params_sides, TIM_params)
