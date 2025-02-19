@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
             for l, cfile in enumerate(files):
 
-                if (l>2): continue
+                if (l>1): continue
                 #Load the catalog of the subfield
                 cat = Table.read(TIM_params["sides_cat_path"]+cfile)
                 cat = cat.to_pandas()
