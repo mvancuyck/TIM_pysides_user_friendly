@@ -253,7 +253,7 @@ def channel_flux_densities(cat, params_sides, cube_prop_dict, params, max_delta_
 
     if(params['profile']=='tophat'): freq_list = channels
     else: 
-        fwhm = w.wcs.cdelt[2]/1e9 - params['diff_btw_freq_resol_and_fwhm']/1e9  # Frequency resolution (step between consecutive channels)
+        fwhm = w.wcs.cdelt[2]/1e9*(1 - params['diff_btw_freq_resol_and_fwhm']/100) # Frequency resolution (step between consecutive channels)
         freq_list = np.linspace(channels.min()-2*fwhm, channels.max()+2*fwhm, params['spf']*len(channels)+1)
 
     lambda_list =  ( cst.c * (u.m/u.s)  / (np.asarray(freq_list*1e9) * u.Hz)  ).to(u.um).value
@@ -386,7 +386,8 @@ def line_filter_flux_densities(line, rest_freq, cat, cube_prop_dict, params):
     vdelt = (cst.c * 1e-3) * nudelt / freq_obs #km/s
     Snu = np.asarray(cat['I'+line] / vdelt)  #Jy
     #----
-    fwhm = w.wcs.cdelt[2]/1e9 - params['diff_btw_freq_resol_and_fwhm']/1e9  # Frequency resolution (step between consecutive channels)
+    fwhm = w.wcs.cdelt[2]/1e9*(1 - params['diff_btw_freq_resol_and_fwhm']/100) # Frequency resolution (step between consecutive channels)
+    #w.wcs.cdelt[2]/1e9 - params['diff_btw_freq_resol_and_fwhm']/1e9  # Frequency resolution (step between consecutive channels)
     profile = params['profile']
     assert profile in ['tophat', 'gaussian', 'lorentzian']
     transmission = get_profile_transmission(freq_obs, freq_list, fwhm, profile = profile)
